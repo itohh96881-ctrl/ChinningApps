@@ -1,4 +1,8 @@
 import { trainingSteps } from '../data/program.js';
+import charMaleYoung from '../assets/char_male_young.png';
+import charFemaleYoung from '../assets/char_female_young.png';
+import charMaleOld from '../assets/char_male_old.png';
+import charFemaleOld from '../assets/char_female_old.png';
 
 export class LevelManager {
   constructor(navigation, tracker) {
@@ -119,10 +123,10 @@ export class LevelManager {
     section.innerHTML = `
             <h3>Team Chinning</h3>
             <div class="team-grid">
-                <img src="./assets/char_male_young.png" alt="Young Male" class="team-member float-1">
-                <img src="./assets/char_female_young.png" alt="Young Female" class="team-member float-2">
-                <img src="./assets/char_male_old.png" alt="Old Male" class="team-member float-3">
-                <img src="./assets/char_female_old.png" alt="Old Female" class="team-member float-4">
+                <img src="${charMaleYoung}" alt="Young Male" class="team-member float-1">
+                <img src="${charFemaleYoung}" alt="Young Female" class="team-member float-2">
+                <img src="${charMaleOld}" alt="Old Male" class="team-member float-3">
+                <img src="${charFemaleOld}" alt="Old Female" class="team-member float-4">
             </div>
             <p class="team-message">今日も一緒に頑張ろう！</p>
         `;
