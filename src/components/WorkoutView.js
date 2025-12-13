@@ -12,16 +12,33 @@ export class WorkoutView {
     render(container, params) {
         this.currentStep = params.step;
         this.currentSet = 1;
+        this.mode = params.mode || 'training'; // 'training' or 'test'
+
+        let displayData = {
+            title: this.currentStep.title,
+            description: this.currentStep.description,
+            target: this.currentStep.target
+        };
+
+        if (this.mode === 'test' && this.currentStep.testCriteria) {
+            displayData = {
+                title: this.currentStep.testCriteria.title,
+                description: this.currentStep.testCriteria.description,
+                target: this.currentStep.testCriteria.target
+            };
+        }
+
+        this.displayData = displayData; // Store for logic
 
         const section = document.createElement('section');
-        section.className = 'workout-view fade-in';
+        section.className = `workout-view fade-in ${this.mode === 'test' ? 'mode-test' : ''}`;
 
         // Header
         const header = document.createElement('div');
         header.className = 'view-header';
         header.innerHTML = `
       <button class="back-btn">← 戻る</button>
-      <h2>Level ${this.currentStep.level}</h2>
+      <h2>${this.mode === 'test' ? '⭐️ PROMOTION EXAM' : `Level ${this.currentStep.level}`}</h2>
     `;
         header.querySelector('.back-btn').onclick = () => this.navigation.navigate('home');
         section.appendChild(header);
@@ -29,15 +46,23 @@ export class WorkoutView {
         // Content
         const content = document.createElement('div');
         content.className = 'workout-content';
+
+        // Target Display Construction
+        let targetHtml = '';
+        if (displayData.target) {
+            targetHtml = `
+            <div class="target-display ${this.mode === 'test' ? 'test-target' : ''}">
+                <div class="target-main">
+                <span class="val">${displayData.target.value}</span>
+                <span class="unit">${displayData.target.unit}</span>
+                </div>
+            </div>`;
+        }
+
         content.innerHTML = `
-      <h3 class="step-title-large">${this.currentStep.title}</h3>
-      <div class="target-display">
-        <div class="target-main">
-          <span class="val">${this.currentStep.target.value}</span>
-          <span class="unit">${this.currentStep.target.unit}</span>
-        </div>
-      </div>
-      <p class="workout-instruction">${this.currentStep.description}</p>
+      <h3 class="step-title-large">${displayData.title}</h3>
+      ${targetHtml}
+      <p class="workout-instruction">${displayData.description}</p>
     `;
 
         // Action Area
@@ -54,7 +79,7 @@ export class WorkoutView {
         container.innerHTML = '';
         const startBtn = document.createElement('button');
         startBtn.className = 'btn btn-large btn-primary';
-        startBtn.textContent = 'トレーニング開始 (Start)';
+        startBtn.textContent = this.mode === 'test' ? '試験開始 (Start Exam)' : 'トレーニング開始 (Start)';
         startBtn.onclick = () => this.handleStartSet(container);
         container.appendChild(startBtn);
     }
@@ -62,12 +87,10 @@ export class WorkoutView {
     handleStartSet(container) {
         // Prepare UI for "In Progress"
         container.innerHTML = '';
+        const target = this.displayData.target;
 
-        // If time-based (e.g. Hanging), show a timer
-        // If count-based, just show "Finish" button
-
-        if (this.currentStep.target.type === 'time') {
-            const duration = this.currentStep.target.value;
+        if (target.type === 'time') {
+            const duration = target.value;
             // Create a temporary timer display inside the target area or just action area?
             // Let's replace the large target value with the timer for better visibility
             const targetValEl = document.querySelector('.target-main .val');
@@ -76,8 +99,14 @@ export class WorkoutView {
             this.activeTimer = new Timer(duration, () => {
                 // Time up
                 soundManager.playWhistle(); // Sound alert
-                if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-                this.renderFinishButton(container); // Allow user to manually click finish to proceed to rest
+                if (navigator.vibrate) navigator.vibrate([200, 100, 200, 500]);
+
+                if (this.mode === 'test') {
+                    this.finishExam(true); // Auto pass for time based if completed
+                } else {
+                    this.renderFinishButton(container); // Allow user to manually click finish to proceed to rest
+                }
+
                 if (targetValEl) targetValEl.textContent = "00:00"; // Or restore
             });
 
@@ -95,11 +124,16 @@ export class WorkoutView {
             // Allow manual finish (e.g. failed early)
             const stopBtn = document.createElement('button');
             stopBtn.className = 'btn btn-secondary';
-            stopBtn.textContent = '中断 / 完了 (Stop)';
+            stopBtn.textContent = '中断 (Stop)';
             stopBtn.style.marginTop = '10px';
             stopBtn.onclick = () => {
-                this.activeTimer.stop();
-                this.handleSetComplete(container);
+                if (this.activeTimer) this.activeTimer.stop();
+                if (this.mode === 'test') {
+                    alert('試験中断...また挑戦してください！');
+                    this.navigation.navigate('home');
+                } else {
+                    this.finishSingleSet();
+                }
             };
             container.appendChild(stopBtn);
 
@@ -113,12 +147,44 @@ export class WorkoutView {
         container.innerHTML = '';
         const completeBtn = document.createElement('button');
         completeBtn.className = 'btn btn-large btn-primary';
-        completeBtn.textContent = '休憩開始 (Start Rest)';
-        completeBtn.onclick = () => this.handleSetComplete(container);
-        container.appendChild(completeBtn);
+
+        if (this.mode === 'test') {
+            completeBtn.textContent = '合格しました！ (I Passed!)';
+            completeBtn.onclick = () => this.finishExam(true);
+            // Maybe add a fail button too?
+            const failBtn = document.createElement('button');
+            failBtn.className = 'btn btn-secondary';
+            failBtn.innerHTML = '不合格... (Failed)';
+            failBtn.style.marginTop = '10px';
+            failBtn.style.display = 'block';
+            failBtn.style.width = '100%';
+            failBtn.onclick = () => {
+                alert('残念...次は頑張りましょう！');
+                this.navigation.navigate('home');
+            };
+            container.appendChild(completeBtn);
+            container.appendChild(failBtn);
+        } else {
+            completeBtn.textContent = '休憩開始 (Start Rest)';
+            completeBtn.onclick = () => this.finishSingleSet();
+            container.appendChild(completeBtn);
+        }
     }
 
-    async handleSetComplete(container) {
+    async finishExam(success) {
+        if (success) {
+            soundManager.playDing(); // Needs a bigger sound ideally
+            alert(`🎉 おめでとうございます！\n昇格試験に合格しました！\n新しいレベルがアンロックされます！`);
+
+            // Promote
+            if (this.tracker) {
+                await this.tracker.updateUserRank(this.currentStep.rankId + 1);
+            }
+        }
+        this.navigation.navigate('home');
+    }
+
+    async finishSingleSet() {
         // Stop any active timer just in case
         if (this.activeTimer) {
             this.activeTimer.stop();
@@ -126,9 +192,9 @@ export class WorkoutView {
         }
 
         // Restore target display if modified
-        if (this.currentStep.target.type === 'time') {
+        if (this.displayData.target.type === 'time') {
             const targetValEl = document.querySelector('.target-main .val');
-            if (targetValEl) targetValEl.textContent = this.currentStep.target.value;
+            if (targetValEl) targetValEl.textContent = this.displayData.target.value;
         }
 
         // Save 1 Set

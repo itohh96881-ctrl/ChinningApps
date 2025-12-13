@@ -63,7 +63,7 @@ export class LevelManager {
         // Training Button
         actionButtons = `
             <button class="btn btn-secondary btn-sm" onclick="app.navigation.navigate('timer', { step })">
-               ⚔️ トレーニング (Training)
+               ⚔️ トレーニング (Streak: ${streak})
             </button>
           `;
 

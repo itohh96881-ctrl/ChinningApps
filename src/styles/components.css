@@ -247,6 +247,35 @@
     }
 }
 
+/* Test Mode */
+.mode-test {
+    background: linear-gradient(to bottom, #2a0000, #111);
+}
+
+.mode-test .view-header {
+    border-bottom-color: #ff4400;
+}
+
+.mode-test .view-header h2 {
+    color: #ff4400;
+    text-shadow: 0 0 15px rgba(255, 68, 0, 0.6);
+}
+
+.mode-test .target-display {
+    border-color: #ff4400;
+    box-shadow: 0 0 20px rgba(255, 68, 0, 0.2);
+}
+
+.mode-test .target-value,
+.mode-test .val {
+    color: #ff8800;
+}
+
+.mode-test .active-timer-display {
+    border-color: #ff0000;
+    color: #ffcccc;
+}
+
 /* Workout View */
 .workout-view {
     min-height: 80vh;

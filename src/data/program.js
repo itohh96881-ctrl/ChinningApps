@@ -7,7 +7,12 @@ export const trainingSteps = [
         target: { type: "time", value: 30, unit: "秒" },
         sets: 2,
         rest: 60,
-        videoUrl: null
+        videoUrl: null,
+        testCriteria: {
+            title: "昇格試験: フォーム維持",
+            description: "足をついた状態で、姿勢を崩さずに40秒間キープできるか確認します。次のステップへ進む基礎体力を証明してください。",
+            target: { type: "time", value: 40, unit: "秒" }
+        }
     },
     {
         rankId: 2,
@@ -17,7 +22,12 @@ export const trainingSteps = [
         target: { type: "time", value: 30, unit: "秒" },
         sets: 2,
         rest: 60,
-        videoUrl: null
+        videoUrl: null,
+        testCriteria: {
+            title: "昇格試験: 負荷耐久",
+            description: "つま先立ちの状態で40秒間耐えてください。これができれば、足を離す準備は完了です。",
+            target: { type: "time", value: 40, unit: "秒" }
+        }
     },
     {
         rankId: 3,
@@ -27,7 +37,12 @@ export const trainingSteps = [
         target: { type: "time", value: 30, unit: "秒" },
         sets: 3,
         rest: 60,
-        videoUrl: null
+        videoUrl: null,
+        testCriteria: {
+            title: "卒業試験: 完全ぶら下がり",
+            description: "足を完全に離し、45秒間ぶら下がり続けてください。これに合格すれば、いよいよ「懸垂」の動作に入ります。",
+            target: { type: "time", value: 45, unit: "秒" }
+        }
     },
     {
         rankId: 4,
@@ -37,7 +52,12 @@ export const trainingSteps = [
         target: { type: "count", value: 10, unit: "回" },
         sets: 3,
         rest: 90,
-        videoUrl: null
+        videoUrl: null,
+        testCriteria: {
+            title: "昇格試験: 引きつけ力",
+            description: "斜め懸垂を連続15回行ってください。背中の筋肉を使って引き上げる感覚をマスターしている必要があります。",
+            target: { type: "count", value: 15, unit: "回" }
+        }
     },
     {
         rankId: 5,
@@ -47,7 +67,12 @@ export const trainingSteps = [
         target: { type: "count", value: 5, unit: "回" },
         sets: 3,
         rest: 120,
-        videoUrl: null
+        videoUrl: null,
+        testCriteria: {
+            title: "昇格試験: 制動力",
+            description: "ネガティブ懸垂を丁寧なフォームで8回繰り返してください。降りる動作を完全にコントロールできていますか？",
+            target: { type: "count", value: 8, unit: "回" }
+        }
     },
     {
         rankId: 6,
@@ -57,6 +82,11 @@ export const trainingSteps = [
         target: { type: "count", value: 1, unit: "回" },
         sets: 1,
         rest: 120,
-        videoUrl: null
+        videoUrl: null,
+        testCriteria: {
+            title: "最終試験: 懸垂マスター",
+            description: "正しいフォームで懸垂を3回連続で行ってください。反動は禁止です。",
+            target: { type: "count", value: 3, unit: "回" }
+        }
     }
 ];
