@@ -36,9 +36,6 @@ export class WorkoutView {
           <span class="val">${this.currentStep.target.value}</span>
           <span class="unit">${this.currentStep.target.unit}</span>
         </div>
-        <div class="sets-display">
-          Set <span id="current-set">${this.currentSet}</span> / ${this.currentStep.sets}
-        </div>
       </div>
       <p class="workout-instruction">${this.currentStep.description}</p>
     `;
@@ -134,56 +131,35 @@ export class WorkoutView {
             if (targetValEl) targetValEl.textContent = this.currentStep.target.value;
         }
 
-        if (this.currentSet < this.currentStep.sets) {
-            // Show Rest Timer
-            container.innerHTML = '';
-            const message = document.createElement('p');
-            message.className = 'rest-message';
-            message.textContent = '休憩してください';
-            container.appendChild(message);
-
-            const timer = new Timer(this.currentStep.rest || 60, () => {
-                // Rest finished
-                this.currentSet++;
-                this.updateSetDisplay();
-
-                // Notify
-                soundManager.playDing(); // Sound alert
-                if (navigator.vibrate) navigator.vibrate([500]);
-                alert('休憩終了！次のセットを始めましょう。');
-
-                // Back to Start Button
-                this.renderStartButton(container);
-            });
-            timer.render(container);
-            timer.start();
-        } else {
-            // Workout Finished
-            this.finishWorkout();
-        }
-    }
-
-    resetActionArea(container) {
-        this.renderStartButton(container);
-    }
-
-    updateSetDisplay() {
-        const el = document.getElementById('current-set');
-        if (el) el.textContent = this.currentSet;
-    }
-
-    async finishWorkout() {
-        alert('トレーニング完了！お疲れ様でした！');
-
+        // Save 1 Set
         if (this.tracker) {
             await this.tracker.saveRecord({
                 level: this.currentStep.level,
                 title: this.currentStep.title,
                 completedAt: new Date(),
-                sets: this.currentStep.sets
+                sets: 1 // Always 1 set per action
             });
+
+            // Check Daily Goal
+            const result = await this.tracker.checkDailyAchievement();
+
+            if (result && result.achieved) {
+                // Fanfare / Alert for Daily Goal
+                soundManager.playDing();
+                alert(`🎉 今日のノルマ達成！\n継続日数: ${result.streak}日目`);
+            } else {
+                // Just finished a set
+                soundManager.playDing();
+                // Simple toast or rapid return
+                // alert('1セット完了！お疲れ様でした。'); 
+            }
         }
 
+        // Return to Home immediately (No Rest)
         this.navigation.navigate('home');
+    }
+
+    resetActionArea(container) {
+        this.renderStartButton(container);
     }
 }

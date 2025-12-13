@@ -14,21 +14,38 @@ export class LevelManager {
     const section = document.createElement('section');
     section.className = 'level-list fade-in';
 
-    // Header
-    const header = document.createElement('div');
-    header.className = 'view-header';
-    header.innerHTML = `
-      <h2>トレーニングメニュー</h2>
-      <p class="subtitle">レベルに合わせてトレーニングを選んでください</p>
-    `;
-    section.appendChild(header);
-
     // List
     const list = document.createElement('div');
     list.className = 'step-list';
 
-    // Get current rank
+    // Get stats
     const userRank = await this.tracker.getUserRank();
+    const streak = await this.tracker.getStreak();
+    const dailyProgress = await this.tracker.getDailyProgress();
+    const dailyTarget = 3;
+
+    // Header (Updated with Stats)
+    const header = document.createElement('div');
+    header.className = 'view-header';
+    header.innerHTML = `
+      <h2>トレーニングメニュー</h2>
+      
+      <div class="stats-container" style="margin-bottom: 20px; text-align: center;">
+          <div class="streak-display" style="font-size: 1.5rem; font-weight: bold; color: #ff8800; text-shadow: 0 0 10px rgba(255, 136, 0, 0.5); margin-bottom: 8px;">
+            🔥 ${streak} Days Streak
+          </div>
+          <div class="daily-progress" style="font-size: 1rem; color: #aaa;">
+            Today's Target: 
+            <span style="color: ${dailyProgress >= dailyTarget ? '#00ff88' : '#e0e0e0'}; font-weight: bold;">
+                ${dailyProgress} / ${dailyTarget} Sets
+            </span>
+             ${dailyProgress >= dailyTarget ? '🎉' : ''}
+          </div>
+      </div>
+
+      <p class="subtitle">レベルに合わせてトレーニングを選んでください</p>
+    `;
+    section.appendChild(header);
 
     trainingSteps.forEach(step => {
       const isLocked = step.rankId > userRank;
