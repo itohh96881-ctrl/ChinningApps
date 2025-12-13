@@ -223,21 +223,51 @@ export class WorkoutView {
             } else {
                 // Just finished a set
                 soundManager.playDing();
-                // Instead of alert, just go back quietly or maybe small toast?
-                // User wanted "Flashy".
-                // But for every single set? Maybe too much.
-                // Let's do a mini-confetti shoot from the bottom and return.
-                confetti({
-                    particleCount: 50,
-                    spread: 60,
-                    origin: { y: 0.9 }
-                });
-                // Wait small amount then return
-                setTimeout(() => this.navigation.navigate('home'), 1000);
+                this.showSetComplete(result.dailySets || 1);
             }
         } else {
             this.navigation.navigate('home');
         }
+    }
+
+    showSetComplete(currentSets) {
+        // Simple but Rich Overlay for Set Complete
+        const overlay = document.createElement('div');
+        overlay.className = 'celebration-overlay fade-in';
+        overlay.innerHTML = `
+            <div class="celebration-content" style="border-color: #00bcd4; box-shadow: 0 0 30px rgba(0, 188, 212, 0.3);">
+                <h2 style="color: #00bcd4; text-shadow: 0 0 10px rgba(0,255,255,0.5); font-size: 2rem;">SET COMPLETE</h2>
+                <div style="font-size: 1.5rem; color: #fff; margin: 20px 0;">
+                    Today: <span style="font-weight:bold; color: #ffcc00;">${currentSets}</span> / 3
+                </div>
+                <p style="color: #aaa; font-size: 0.9rem;">Excellent work!</p>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        // Mini Confetti
+        confetti({
+            particleCount: 50,
+            spread: 70,
+            origin: { y: 0.8 },
+            colors: ['#00bcd4', '#ffffff']
+        });
+
+        // Auto Dismiss
+        setTimeout(() => {
+            if (document.body.contains(overlay)) {
+                document.body.removeChild(overlay);
+                this.navigation.navigate('home');
+            }
+        }, 2500);
+
+        // Allow click to dismiss early
+        overlay.onclick = () => {
+            if (document.body.contains(overlay)) {
+                document.body.removeChild(overlay);
+                this.navigation.navigate('home');
+            }
+        };
     }
 
     showCelebration(title, message) {

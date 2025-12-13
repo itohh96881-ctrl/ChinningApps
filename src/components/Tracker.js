@@ -168,13 +168,13 @@ export class Tracker {
                     lastAchievedDate: todayStr
                 });
 
-                return { achieved: true, streak: streak };
+                return { achieved: true, streak: streak, dailySets: dailySets };
 
             } catch (e) {
                 console.error("Error updating streak:", e);
             }
         }
-        return { achieved: false };
+        return { achieved: false, dailySets: dailySets };
     }
 
     async saveRecord(recordData) {
