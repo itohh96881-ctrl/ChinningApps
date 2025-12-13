@@ -5,7 +5,7 @@ export const trainingSteps = [
         title: "足つきぶら下がり (Feet Supported)",
         description: "まずは足を地面にベタっとつけたままぶら下がります。体重の一部を足に逃がし、フォームを確認しましょう。",
         target: { type: "time", value: 30, unit: "秒" },
-        sets: 2,
+        sets: 3,
         rest: 60,
         videoUrl: null,
         testCriteria: {
@@ -20,7 +20,7 @@ export const trainingSteps = [
         title: "つま先立ちぶら下がり (Tiptoe Hang)",
         description: "足のサポートをつま先だけに減らします。手にかかる負荷が増えますが、まだ安全に調整できます。",
         target: { type: "time", value: 30, unit: "秒" },
-        sets: 2,
+        sets: 3,
         rest: 60,
         videoUrl: null,
         testCriteria: {

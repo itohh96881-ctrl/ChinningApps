@@ -1,5 +1,6 @@
 import { Timer } from './Timer.js';
 import { soundManager } from '../utils/sound.js';
+import confetti from 'canvas-confetti';
 
 export class WorkoutView {
     constructor(navigation, tracker) {
@@ -10,6 +11,7 @@ export class WorkoutView {
     }
 
     render(container, params) {
+        this.container = container; // Save container ref
         this.currentStep = params.step;
         this.currentSet = 1;
         this.mode = params.mode || 'training'; // 'training' or 'test'
@@ -121,17 +123,26 @@ export class WorkoutView {
             this.activeTimer.render(timerDisplay);
             this.activeTimer.start();
 
-            // Allow manual finish (e.g. failed early)
+            // Stop Button
             const stopBtn = document.createElement('button');
             stopBtn.className = 'btn btn-secondary';
             stopBtn.textContent = '中断 (Stop)';
             stopBtn.style.marginTop = '10px';
-            stopBtn.onclick = () => {
-                if (this.activeTimer) this.activeTimer.stop();
+            stopBtn.onclick = (e) => {
+                e.preventDefault(); // Prevent accidental double clicks or form subs
+                if (this.activeTimer) {
+                    this.activeTimer.stop();
+                    this.activeTimer = null;
+                }
+
                 if (this.mode === 'test') {
                     alert('試験中断...また挑戦してください！');
                     this.navigation.navigate('home');
                 } else {
+                    // Treat as finished (or just cancel?)
+                    // User said "Stop/Complete".
+                    // Let's assume they want to finish the set even if early, OR just go back.
+                    // Previous logic: finishSingleSet.
                     this.finishSingleSet();
                 }
             };
@@ -165,7 +176,7 @@ export class WorkoutView {
             container.appendChild(completeBtn);
             container.appendChild(failBtn);
         } else {
-            completeBtn.textContent = '休憩開始 (Start Rest)';
+            completeBtn.textContent = '完了 (Finish)';
             completeBtn.onclick = () => this.finishSingleSet();
             container.appendChild(completeBtn);
         }
@@ -174,14 +185,16 @@ export class WorkoutView {
     async finishExam(success) {
         if (success) {
             soundManager.playDing(); // Needs a bigger sound ideally
-            alert(`🎉 おめでとうございます！\n昇格試験に合格しました！\n新しいレベルがアンロックされます！`);
 
             // Promote
             if (this.tracker) {
                 await this.tracker.updateUserRank(this.currentStep.rankId + 1);
             }
+
+            this.showCelebration('🎉 合格おめでとう！', '新しいレベルがアンロックされました！\n次のステージへ進みましょう。');
+        } else {
+            this.navigation.navigate('home');
         }
-        this.navigation.navigate('home');
     }
 
     async finishSingleSet() {
@@ -189,12 +202,6 @@ export class WorkoutView {
         if (this.activeTimer) {
             this.activeTimer.stop();
             this.activeTimer = null;
-        }
-
-        // Restore target display if modified
-        if (this.displayData.target.type === 'time') {
-            const targetValEl = document.querySelector('.target-main .val');
-            if (targetValEl) targetValEl.textContent = this.displayData.target.value;
         }
 
         // Save 1 Set
@@ -212,17 +219,70 @@ export class WorkoutView {
             if (result && result.achieved) {
                 // Fanfare / Alert for Daily Goal
                 soundManager.playDing();
-                alert(`🎉 今日のノルマ達成！\n継続日数: ${result.streak}日目`);
+                this.showCelebration('🎉 今日のノルマ達成！', `継続日数: ${result.streak}日目\n素晴らしい継続力です！`);
             } else {
                 // Just finished a set
                 soundManager.playDing();
-                // Simple toast or rapid return
-                // alert('1セット完了！お疲れ様でした。'); 
+                // Instead of alert, just go back quietly or maybe small toast?
+                // User wanted "Flashy".
+                // But for every single set? Maybe too much.
+                // Let's do a mini-confetti shoot from the bottom and return.
+                confetti({
+                    particleCount: 50,
+                    spread: 60,
+                    origin: { y: 0.9 }
+                });
+                // Wait small amount then return
+                setTimeout(() => this.navigation.navigate('home'), 1000);
             }
+        } else {
+            this.navigation.navigate('home');
         }
+    }
 
-        // Return to Home immediately (No Rest)
-        this.navigation.navigate('home');
+    showCelebration(title, message) {
+        // Create Modal Overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'celebration-overlay fade-in';
+        overlay.innerHTML = `
+            <div class="celebration-content">
+                <h1 class="celebration-title">${title}</h1>
+                <p class="celebration-msg">${message.replace(/\n/g, '<br>')}</p>
+                <button class="btn btn-primary btn-large" id="celebration-ok">OK</button>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        // Fire Confetti
+        const duration = 3000;
+        const end = Date.now() + duration;
+
+        (function frame() {
+            confetti({
+                particleCount: 7,
+                angle: 60,
+                spread: 55,
+                origin: { x: 0 },
+                colors: ['#ff0', '#f0f', '#0ff']
+            });
+            confetti({
+                particleCount: 7,
+                angle: 120,
+                spread: 55,
+                origin: { x: 1 },
+                colors: ['#ff0', '#f0f', '#0ff']
+            });
+
+            if (Date.now() < end) {
+                requestAnimationFrame(frame);
+            }
+        }());
+
+        // Handle Close
+        document.getElementById('celebration-ok').onclick = () => {
+            document.body.removeChild(overlay);
+            this.navigation.navigate('home');
+        };
     }
 
     resetActionArea(container) {
