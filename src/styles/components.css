@@ -477,8 +477,20 @@
 }
 
 /* Fade in for the characters */
-.fade-in-up {
-    opacity: 1;
-    /* Override original fade in */
-    animation: none;
+opacity: 1;
+/* Override original fade in */
+animation: none;
+}
+
+/* Version Display */
+.app-version {
+    position: fixed;
+    bottom: 8px;
+    right: 12px;
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+    opacity: 0.5;
+    z-index: 1000;
+    pointer-events: none;
+    font-family: monospace;
 }

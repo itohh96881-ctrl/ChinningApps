@@ -37,7 +37,17 @@ auth.render(authContainer);
 const levelManager = new LevelManager(nav, tracker);
 const workoutView = new WorkoutView(nav, tracker);
 
+import { APP_VERSION } from './version.js';
+
+// ... (existing imports)
+
 nav.register('home', levelManager);
+
+// Add Version Display
+const versionDisplay = document.createElement('div');
+versionDisplay.className = 'app-version';
+versionDisplay.textContent = APP_VERSION;
+document.body.appendChild(versionDisplay);
 nav.register('timer', workoutView);
 
 // Start
