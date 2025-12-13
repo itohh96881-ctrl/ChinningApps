@@ -89,7 +89,7 @@ export class WorkoutView {
         container.innerHTML = '';
         const completeBtn = document.createElement('button');
         completeBtn.className = 'btn btn-large btn-primary';
-        completeBtn.textContent = 'セット完了';
+        completeBtn.textContent = '休憩開始 (Start Rest)';
         completeBtn.onclick = () => this.handleSetComplete(container);
         container.appendChild(completeBtn);
     }
