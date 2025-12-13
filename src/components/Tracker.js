@@ -1,5 +1,5 @@
 import { db } from '../lib/firebase.js';
-import { ref, push, get, query, orderByChild } from "firebase/database";
+import { ref, push, get, query, orderByChild, set, child } from "firebase/database";
 
 export class Tracker {
     constructor() {
@@ -8,6 +8,40 @@ export class Tracker {
 
     setUserId(uid) {
         this.userId = uid;
+    }
+
+    // Get current rank (default: 1)
+    async getUserRank() {
+        if (!this.userId) return 1; // Default for guest or initial load
+        const rankRef = ref(db, `users/${this.userId}/currentRank`);
+        try {
+            const snapshot = await get(rankRef);
+            if (snapshot.exists()) {
+                return snapshot.val();
+            } else {
+                return 1; // Default
+            }
+        } catch (e) {
+            console.error("Error fetching rank:", e);
+            return 1;
+        }
+    }
+
+    // Update rank (only if new rank is higher)
+    async updateUserRank(newRank) {
+        if (!this.userId) return;
+        const rankRef = ref(db, `users/${this.userId}/currentRank`);
+        try {
+            const current = await this.getUserRank();
+            if (newRank > current) {
+                await set(rankRef, newRank);
+                console.log(`Rank updated to ${newRank}`);
+                return true; // Promoted
+            }
+        } catch (e) {
+            console.error("Error updating rank:", e);
+        }
+        return false;
     }
 
     async saveRecord(recordData) {
