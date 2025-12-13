@@ -45,20 +45,93 @@ export class WorkoutView {
         // Action Area
         const actionArea = document.createElement('div');
         actionArea.className = 'action-area';
+        this.renderStartButton(actionArea);
 
-        // Complete Button
-        const completeBtn = document.createElement('button');
-        completeBtn.className = 'btn btn-large btn-primary';
-        completeBtn.textContent = 'セット完了';
-        completeBtn.onclick = () => this.handleSetComplete(actionArea);
-
-        actionArea.appendChild(completeBtn);
         content.appendChild(actionArea);
         section.appendChild(content);
         container.appendChild(section);
     }
 
+    renderStartButton(container) {
+        container.innerHTML = '';
+        const startBtn = document.createElement('button');
+        startBtn.className = 'btn btn-large btn-primary';
+        startBtn.textContent = 'トレーニング開始 (Start)';
+        startBtn.onclick = () => this.handleStartSet(container);
+        container.appendChild(startBtn);
+    }
+
+    handleStartSet(container) {
+        // Prepare UI for "In Progress"
+        container.innerHTML = '';
+
+        // If time-based (e.g. Hanging), show a timer
+        // If count-based, just show "Finish" button
+
+        if (this.currentStep.target.type === 'time') {
+            const duration = this.currentStep.target.value;
+            // Create a temporary timer display inside the target area or just action area?
+            // Let's replace the large target value with the timer for better visibility
+            const targetValEl = document.querySelector('.target-main .val');
+            const originalVal = targetValEl ? targetValEl.textContent : '';
+
+            this.activeTimer = new Timer(duration, () => {
+                // Time up
+                if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                this.renderFinishButton(container); // Allow user to manually click finish to proceed to rest
+                if (targetValEl) targetValEl.textContent = "00:00"; // Or restore
+            });
+
+            // Render timer string into the target value element manually (Timer class renders full UI)
+            // Actually Timer class creates a generic UI. Let's make a mini-timer logic here or use Timer class nicely.
+            // Simplified: Use Timer class but inject into action area for now to avoid breaking layout too much.
+
+            const timerDisplay = document.createElement('div');
+            timerDisplay.className = 'active-timer-display';
+            container.appendChild(timerDisplay);
+
+            this.activeTimer.render(timerDisplay);
+            this.activeTimer.start();
+
+            // Allow manual finish (e.g. failed early)
+            const stopBtn = document.createElement('button');
+            stopBtn.className = 'btn btn-secondary';
+            stopBtn.textContent = '中断 / 完了 (Stop)';
+            stopBtn.style.marginTop = '10px';
+            stopBtn.onclick = () => {
+                this.activeTimer.stop();
+                this.handleSetComplete(container);
+            };
+            container.appendChild(stopBtn);
+
+        } else {
+            // Count based (Reps)
+            this.renderFinishButton(container);
+        }
+    }
+
+    renderFinishButton(container) {
+        container.innerHTML = '';
+        const completeBtn = document.createElement('button');
+        completeBtn.className = 'btn btn-large btn-primary';
+        completeBtn.textContent = '休憩開始 (Start Rest)';
+        completeBtn.onclick = () => this.handleSetComplete(container);
+        container.appendChild(completeBtn);
+    }
+
     handleSetComplete(container) {
+        // Stop any active timer just in case
+        if (this.activeTimer) {
+            this.activeTimer.stop();
+            this.activeTimer = null;
+        }
+
+        // Restore target display if modified
+        if (this.currentStep.target.type === 'time') {
+            const targetValEl = document.querySelector('.target-main .val');
+            if (targetValEl) targetValEl.textContent = this.currentStep.target.value;
+        }
+
         if (this.currentSet < this.currentStep.sets) {
             // Show Rest Timer
             container.innerHTML = '';
@@ -71,11 +144,13 @@ export class WorkoutView {
                 // Rest finished
                 this.currentSet++;
                 this.updateSetDisplay();
-                this.resetActionArea(container);
 
                 // Notify
                 if (navigator.vibrate) navigator.vibrate([500]);
                 alert('休憩終了！次のセットを始めましょう。');
+
+                // Back to Start Button
+                this.renderStartButton(container);
             });
             timer.render(container);
             timer.start();
@@ -86,12 +161,7 @@ export class WorkoutView {
     }
 
     resetActionArea(container) {
-        container.innerHTML = '';
-        const completeBtn = document.createElement('button');
-        completeBtn.className = 'btn btn-large btn-primary';
-        completeBtn.textContent = '休憩開始 (Start Rest)';
-        completeBtn.onclick = () => this.handleSetComplete(container);
-        container.appendChild(completeBtn);
+        this.renderStartButton(container);
     }
 
     updateSetDisplay() {
