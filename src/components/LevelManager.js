@@ -123,10 +123,18 @@ export class LevelManager {
     section.innerHTML = `
             <h3>Team Chinning</h3>
             <div class="team-grid">
-                <img src="${charMaleYoung}" alt="Young Male" class="team-member float-1">
-                <img src="${charFemaleYoung}" alt="Young Female" class="team-member float-2">
-                <img src="${charMaleOld}" alt="Old Male" class="team-member float-3">
-                <img src="${charFemaleOld}" alt="Old Female" class="team-member float-4">
+                <div class="team-wrapper float-1">
+                    <img src="${charMaleYoung}" alt="Young Male" class="team-member">
+                </div>
+                <div class="team-wrapper float-2">
+                    <img src="${charFemaleYoung}" alt="Young Female" class="team-member">
+                </div>
+                <div class="team-wrapper float-3">
+                    <img src="${charMaleOld}" alt="Old Male" class="team-member">
+                </div>
+                <div class="team-wrapper float-4">
+                    <img src="${charFemaleOld}" alt="Old Female" class="team-member">
+                </div>
             </div>
             <p class="team-message">今日も一緒に頑張ろう！</p>
         `;
