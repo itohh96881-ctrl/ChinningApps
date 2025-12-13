@@ -388,94 +388,97 @@
     }
 }
 
-/* Team Section */
+/* Team Section (Updated: Floating Around) */
 .team-section {
-    margin-top: var(--spacing-xl);
-    padding: var(--spacing-lg) 0;
-    text-align: center;
-    border-top: 1px dashed var(--color-surface);
+    /* No layout container needed, just a logic holder */
+    pointer-events: none;
 }
 
-.team-section h3 {
-    font-size: 0.9rem;
-    color: var(--color-primary);
-    opacity: 0.8;
-    margin-bottom: var(--spacing-md);
-    text-transform: uppercase;
-    letter-spacing: 2px;
+.team-section h3,
+.team-message {
+    display: none;
+    /* Hide text, just show characters */
 }
 
 .team-grid {
-    display: flex;
-    justify-content: center;
-    gap: var(--spacing-sm);
-    flex-wrap: wrap;
-    padding: 0 var(--spacing-md);
+    /* Remove grid layout */
+    display: block;
 }
 
 .team-member {
-    width: 60px;
-    height: 60px;
-    border-radius: 12px;
+    position: fixed;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
     object-fit: cover;
-    border: 2px solid var(--color-surface);
-    background: var(--color-surface);
-    transition: transform 0.3s;
+    border: 3px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    z-index: 50;
+    /* Above content but below modals/overlays */
+    pointer-events: none;
+    /* Allow clicking through */
+    opacity: 0.9;
 }
 
-.team-member:hover {
-    transform: scale(1.1) rotate(5deg);
-    border-color: var(--color-primary);
-}
-
-.team-message {
-    margin-top: var(--spacing-md);
-    font-size: 0.85rem;
-    color: var(--color-text-muted);
-}
-
-/* Floating Animation */
-@keyframes float {
-
-    0%,
-    100% {
-        transform: translateY(0);
+/* 
+  Random movement logic using dual-axis animation 
+  Different durations for X and Y create random-looking paths
+*/
+@keyframes moveX {
+    0% {
+        left: 0;
+        transform: scaleX(1);
     }
 
     50% {
-        transform: translateY(-6px);
+        left: calc(100vw - 80px);
+        transform: scaleX(1);
+    }
+
+    51% {
+        transform: scaleX(-1);
+    }
+
+    /* Flip direction face */
+    100% {
+        left: 0;
+        transform: scaleX(-1);
     }
 }
 
+@keyframes moveY {
+    0% {
+        top: 0;
+    }
+
+    100% {
+        top: calc(100vh - 80px);
+    }
+}
+
+/* Character 1 */
 .float-1 {
-    animation: float 3s ease-in-out infinite;
-    animation-delay: 0s;
+    animation: moveX 15s linear infinite alternate, moveY 13s linear infinite alternate;
 }
 
+/* Character 2 */
 .float-2 {
-    animation: float 3.2s ease-in-out infinite;
-    animation-delay: 0.5s;
+    animation: moveX 18s linear infinite alternate-reverse, moveY 11s linear infinite alternate;
 }
 
+/* Character 3 */
 .float-3 {
-    animation: float 2.8s ease-in-out infinite;
-    animation-delay: 1s;
+    animation: moveX 22s linear infinite alternate, moveY 16s linear infinite alternate-reverse;
 }
 
+/* Character 4 */
 .float-4 {
-    animation: float 3.5s ease-in-out infinite;
-    animation-delay: 1.5s;
+    animation: moveX 12s linear infinite alternate-reverse, moveY 19s linear infinite alternate-reverse;
 }
 
+/* Fade in for the characters */
 .fade-in-up {
-    opacity: 0;
-    transform: translateY(20px);
-    animation: fadeInUp 0.6s forwards;
-}
-
-@keyframes fadeInUp {
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    opacity: 1;
+    /* Override original fade in */
+    animation: none;
 }
