@@ -118,7 +118,7 @@ export class WorkoutView {
         container.appendChild(completeBtn);
     }
 
-    handleSetComplete(container) {
+    async handleSetComplete(container) {
         // Stop any active timer just in case
         if (this.activeTimer) {
             this.activeTimer.stop();
