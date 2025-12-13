@@ -34,7 +34,7 @@ authContainer.className = 'auth-container';
 document.querySelector('.app-header').appendChild(authContainer);
 auth.render(authContainer);
 
-const levelManager = new LevelManager(nav);
+const levelManager = new LevelManager(nav, tracker);
 const workoutView = new WorkoutView(nav, tracker);
 
 nav.register('home', levelManager);
