@@ -1,4 +1,5 @@
 import { Timer } from './Timer.js';
+import { soundManager } from '../utils/sound.js';
 
 export class WorkoutView {
     constructor(navigation, tracker) {
@@ -73,10 +74,11 @@ export class WorkoutView {
             // Create a temporary timer display inside the target area or just action area?
             // Let's replace the large target value with the timer for better visibility
             const targetValEl = document.querySelector('.target-main .val');
-            const originalVal = targetValEl ? targetValEl.textContent : '';
+            // const originalVal = targetValEl ? targetValEl.textContent : '';
 
             this.activeTimer = new Timer(duration, () => {
                 // Time up
+                soundManager.playWhistle(); // Sound alert
                 if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
                 this.renderFinishButton(container); // Allow user to manually click finish to proceed to rest
                 if (targetValEl) targetValEl.textContent = "00:00"; // Or restore
@@ -146,6 +148,7 @@ export class WorkoutView {
                 this.updateSetDisplay();
 
                 // Notify
+                soundManager.playDing(); // Sound alert
                 if (navigator.vibrate) navigator.vibrate([500]);
                 alert('休憩終了！次のセットを始めましょう。');
 
