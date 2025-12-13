@@ -1,31 +1,25 @@
 :root {
-  /* Colors: Castle Theme (Stone, Iron, Fire) */
-  --color-bg: #1a1a1a;
-  --color-surface: #2d2d2d;
-  --color-primary: #e0e0e0;
-  /* Iron/Steel */
-  --color-primary-dim: #999999;
-  --color-accent: #ff8800;
-  /* Torch Fire */
-  --color-text: #e0e0e0;
-  --color-text-muted: #888888;
-  --color-error: #cf6679;
+  /* Rich Castle Theme Colors */
+  --bg-dark: #0a0a0a;
+  --bg-panel: rgba(20, 20, 24, 0.7);
+  --bg-panel-light: rgba(40, 40, 45, 0.6);
 
-  /* Typography */
-  --font-family: 'Times New Roman', serif;
-  /* Classic/Rugged feel */
-  --font-size-base: 16px;
+  --primary: #ffcc00;
+  /* Gold */
+  --primary-glow: rgba(255, 204, 0, 0.6);
+  --secondary: #00bcd4;
+  /* Cyan/Magic */
+  --secondary-glow: rgba(0, 188, 212, 0.6);
+  --danger: #ff4444;
+  --danger-glow: rgba(255, 68, 68, 0.6);
 
-  /* Spacing */
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
+  --text-main: #ffffff;
+  --text-muted: #a0a0a0;
 
-  /* Borders: Rugged/Sharp */
-  --border-radius-sm: 2px;
-  --border-radius-md: 4px;
-  --border-radius-lg: 4px;
+  --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+
+  --font-main: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 * {
@@ -36,9 +30,6 @@
 }
 
 body {
-  font-family: var(--font-family);
-  background-color: var(--color-bg);
-  /* Stone wall texture effect */
   background-image:
     linear-gradient(335deg, rgba(0, 0, 0, 0.2) 23px, transparent 23px),
     linear-gradient(155deg, rgba(0, 0, 0, 0.2) 23px, transparent 23px),
