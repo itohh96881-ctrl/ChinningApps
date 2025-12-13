@@ -49,6 +49,8 @@
     display: flex;
     flex-direction: column;
     gap: var(--spacing-md);
+    position: relative;
+    /* For lock overlay */
 }
 
 .step-card:active {
@@ -59,6 +61,87 @@
 .step-card:hover {
     border-color: var(--color-primary);
     /* Highlight with Iron color */
+}
+
+/* Locked State */
+.step-card.locked {
+    opacity: 0.6;
+    pointer-events: none;
+    border-color: #333;
+    background: #222;
+    filter: grayscale(1);
+}
+
+.lock-overlay {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    color: #888;
+}
+
+.lock-icon {
+    font-size: 1.5rem;
+    margin-bottom: 4px;
+}
+
+.lock-text {
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    font-weight: bold;
+}
+
+/* Current & Cleared States */
+.step-card.current {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 15px rgba(255, 136, 0, 0.15);
+}
+
+.step-card.cleared {
+    border-color: #00ff88;
+}
+
+/* Badges */
+.step-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.status-badge {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.status-badge.cleared {
+    color: #00ff88;
+    /* Green/Gold */
+    border: 1px solid #00ff88;
+}
+
+.status-badge.current {
+    color: var(--color-accent);
+    border: 1px solid var(--color-accent);
+    animation: pulseBadge 2s infinite;
+}
+
+@keyframes pulseBadge {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+
+    100% {
+        opacity: 1;
+    }
 }
 
 .step-info {
@@ -131,6 +214,37 @@
     font-weight: 400;
     margin-left: 2px;
     color: var(--color-text-muted);
+}
+
+/* Step Actions */
+.step-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.btn-sm {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+}
+
+.btn-test {
+    background: linear-gradient(135deg, #ff8800 0%, #ff4400 100%);
+    color: #fff;
+    border: 1px solid #ffaa00;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    animation: glowButton 3s infinite alternate;
+}
+
+@keyframes glowButton {
+    from {
+        box-shadow: 0 0 5px rgba(255, 68, 0, 0.3);
+    }
+
+    to {
+        box-shadow: 0 0 15px rgba(255, 68, 0, 0.6);
+    }
 }
 
 /* Workout View */

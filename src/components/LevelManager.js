@@ -10,7 +10,7 @@ export class LevelManager {
     this.tracker = tracker;
   }
 
-  render(container) {
+  async render(container) {
     const section = document.createElement('section');
     section.className = 'level-list fade-in';
 
@@ -27,16 +27,46 @@ export class LevelManager {
     const list = document.createElement('div');
     list.className = 'step-list';
 
+    // Get current rank
+    const userRank = await this.tracker.getUserRank();
+
     trainingSteps.forEach(step => {
-      const card = document.createElement('button');
-      card.className = 'step-card';
-      card.onclick = () => {
-        this.navigation.navigate('timer', { step });
-      };
+      const isLocked = step.rankId > userRank;
+      const isCleared = step.rankId < userRank;
+      const isCurrent = step.rankId === userRank;
+
+      const card = document.createElement('div'); // Changed to div to contain buttons
+      card.className = `step-card ${isLocked ? 'locked' : ''} ${isCleared ? 'cleared' : ''} ${isCurrent ? 'current' : ''}`;
+
+      let actionButtons = '';
+
+      if (isLocked) {
+        actionButtons = `<div class="lock-overlay"><span class="lock-icon">🔒</span><span class="lock-text">LOCKED</span></div>`;
+      } else {
+        // Training Button
+        actionButtons = `
+            <button class="btn btn-secondary btn-sm" onclick="app.navigation.navigate('timer', { step })">
+               ⚔️ トレーニング (Training)
+            </button>
+          `;
+
+        // Test Button (Only for current level)
+        if (isCurrent) {
+          actionButtons += `
+                <button class="btn btn-primary btn-sm btn-test" onclick="app.navigation.navigate('timer', { step, mode: 'test' })">
+                   🔥 昇格試験を受ける (Promotion Test)
+                </button>
+              `;
+        }
+      }
 
       card.innerHTML = `
+        <div class="step-header-row">
+            <span class="step-badge">Level ${step.level}</span>
+            ${isCleared ? '<span class="status-badge cleared">👑 CLEARED</span>' : ''}
+            ${isCurrent ? '<span class="status-badge current">📍 YOU ARE HERE</span>' : ''}
+        </div>
         <div class="step-info">
-          <span class="step-badge">Level ${step.level}</span>
           <h3 class="step-title">${step.title}</h3>
           <p class="step-desc">${step.description}</p>
         </div>
@@ -50,7 +80,14 @@ export class LevelManager {
             <span class="target-value">${step.sets}<small>set</small></span>
           </div>
         </div>
+        <div class="step-actions">
+            ${actionButtons}
+        </div>
       `;
+
+      // Make the whole card clickable for training if not locked, but avoid conflict with buttons
+      // Actually, let's rely on the buttons for clarity in this new UI
+
       list.appendChild(card);
     });
 
@@ -67,6 +104,36 @@ export class LevelManager {
     this.renderTeam(section); // Add Team Section
 
     container.appendChild(section);
+
+    // Quick hack to make onclick work with 'app.navigation' global access or bind properly
+    // Since we don't have global 'app', we need to attach event listeners manually after appending
+    const buttons = list.querySelectorAll('button');
+    buttons.forEach(btn => {
+      const onclickAttr = btn.getAttribute('onclick');
+      if (onclickAttr) {
+        btn.onclick = null; // Clear string attribute
+        // Re-implement logic safely
+        if (onclickAttr.includes("'test'")) {
+          // Extract step index or data. For now, let's use a simpler closure approach in the loop above?
+          // No, string injection is messy. Let's fix this in the loop.
+        }
+      }
+    });
+
+    // Re-assign click handlers properly using closures (cleaner than string injection)
+    Array.from(list.children).forEach((card, index) => {
+      const step = trainingSteps[index];
+      const trainBtn = card.querySelector('.btn-secondary');
+      const testBtn = card.querySelector('.btn-test');
+
+      if (trainBtn) {
+        trainBtn.onclick = () => this.navigation.navigate('timer', { step, mode: 'training' });
+      }
+      if (testBtn) {
+        testBtn.onclick = () => this.navigation.navigate('timer', { step, mode: 'test' });
+      }
+    });
+
   }
 
   async loadHistory(container) {
