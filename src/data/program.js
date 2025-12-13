@@ -1,8 +1,26 @@
 export const trainingSteps = [
     {
-        level: 0,
+        level: "0-1",
+        title: "足つきぶら下がり (Feet Supported)",
+        description: "まずは足を地面にベタっとつけたままぶら下がります。体重の一部を足に逃がし、フォームを確認しましょう。",
+        target: { type: "time", value: 30, unit: "秒" },
+        sets: 2,
+        rest: 60,
+        videoUrl: null
+    },
+    {
+        level: "0-2",
+        title: "つま先立ちぶら下がり (Tiptoe Hang)",
+        description: "足のサポートをつま先だけに減らします。手にかかる負荷が増えますが、まだ安全に調整できます。",
+        target: { type: "time", value: 30, unit: "秒" },
+        sets: 2,
+        rest: 60,
+        videoUrl: null
+    },
+    {
+        level: "0-3",
         title: "ぶら下がり (Dead Hang)",
-        description: "まずは鉄棒にぶら下がることから始めましょう。握力を強化し、体を支える感覚を養います。",
+        description: "足を地面から離し、全体重を腕で支えます。肩をリラックスさせすぎず、少し力を入れた状態を保ちましょう。",
         target: { type: "time", value: 30, unit: "秒" },
         sets: 3,
         rest: 60,
