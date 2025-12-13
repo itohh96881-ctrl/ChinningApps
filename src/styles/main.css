@@ -1,28 +1,31 @@
 :root {
-  /* Colors */
-  --color-bg: #121212;
-  --color-surface: #1e1e1e;
-  --color-primary: #00ff88;
-  --color-primary-dim: #00cc6a;
-  --color-accent: #00e5ff;
-  --color-text: #ffffff;
-  --color-text-muted: #b0b0b0;
-  --color-error: #ff4444;
+  /* Colors: Castle Theme (Stone, Iron, Fire) */
+  --color-bg: #1a1a1a;
+  --color-surface: #2d2d2d;
+  --color-primary: #e0e0e0;
+  /* Iron/Steel */
+  --color-primary-dim: #999999;
+  --color-accent: #ff8800;
+  /* Torch Fire */
+  --color-text: #e0e0e0;
+  --color-text-muted: #888888;
+  --color-error: #cf6679;
 
   /* Typography */
-  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-family: 'Times New Roman', serif;
+  /* Classic/Rugged feel */
   --font-size-base: 16px;
-  
+
   /* Spacing */
   --spacing-sm: 8px;
   --spacing-md: 16px;
   --spacing-lg: 24px;
   --spacing-xl: 32px;
 
-  /* Borders */
-  --border-radius-sm: 8px;
-  --border-radius-md: 12px;
-  --border-radius-lg: 20px;
+  /* Borders: Rugged/Sharp */
+  --border-radius-sm: 2px;
+  --border-radius-md: 4px;
+  --border-radius-lg: 4px;
 }
 
 * {
@@ -35,6 +38,15 @@
 body {
   font-family: var(--font-family);
   background-color: var(--color-bg);
+  /* Stone wall texture effect */
+  background-image:
+    linear-gradient(335deg, rgba(0, 0, 0, 0.2) 23px, transparent 23px),
+    linear-gradient(155deg, rgba(0, 0, 0, 0.2) 23px, transparent 23px),
+    linear-gradient(335deg, rgba(0, 0, 0, 0.2) 23px, transparent 23px),
+    linear-gradient(155deg, rgba(0, 0, 0, 0.2) 23px, transparent 23px);
+  background-size: 58px 58px;
+  background-position: 0px 2px, 4px 35px, 29px 31px, 34px 6px;
+
   color: var(--color-text);
   line-height: 1.5;
   font-size: var(--font-size-base);
@@ -56,7 +68,8 @@ a {
 
 /* Utilities */
 .container {
-  max-width: 600px; /* スマホ・タブレット向けに幅を制限 */
+  max-width: 600px;
+  /* スマホ・タブレット向けに幅を制限 */
   margin: 0 auto;
   padding: var(--spacing-md);
   min-height: 100vh;
@@ -70,8 +83,15 @@ a {
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .fade-in {
