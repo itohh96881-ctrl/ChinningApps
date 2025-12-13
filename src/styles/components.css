@@ -455,8 +455,7 @@
 }
 
 .team-section h3,
-.team-message,
-.team-grid {
+.team-message {
     display: none;
     /* Hide text etc */
 }
