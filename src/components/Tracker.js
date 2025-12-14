@@ -68,9 +68,6 @@ export class Tracker {
             todayRecords.forEach(r => {
                 totalSets += (r.sets ? parseInt(r.sets) : 1); // Default to 1 if missing
             });
-            todayRecords.forEach(r => {
-                totalSets += (r.sets || 0);
-            });
 
             return totalSets;
         } catch (e) {
