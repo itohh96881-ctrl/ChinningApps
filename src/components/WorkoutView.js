@@ -209,13 +209,13 @@ export class WorkoutView {
                 const result = await this.tracker.checkDailyAchievement();
                 console.log("Achievement result:", result);
 
-                if (result && result.achieved) {
-                    // Fanfare / Alert for Daily Goal
-                    console.log("Daily goal achieved!");
+                if (result && result.achieved && result.isNew) {
+                    // Fanfare / Alert for Daily Goal (Only if NEW)
+                    console.log("Daily goal NEWLY achieved!");
                     soundManager.playDing();
                     this.showCelebration('🎉 今日のノルマ達成！', `継続日数: ${result.streak}日目\n素晴らしい継続力です！`);
                 } else {
-                    // Just finished a set
+                    // Just finished a set (or already achieved today)
                     console.log("Set complete, showing set overlay...");
                     soundManager.playDing();
                     const dailySets = result ? result.dailySets : 1;
