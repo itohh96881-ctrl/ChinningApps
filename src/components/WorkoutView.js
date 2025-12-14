@@ -123,31 +123,6 @@ export class WorkoutView {
             this.activeTimer.render(timerDisplay);
             this.activeTimer.start();
 
-            // Stop Button
-            const stopBtn = document.createElement('button');
-            stopBtn.className = 'btn btn-secondary';
-            stopBtn.textContent = '中断 (Stop)';
-            stopBtn.style.marginTop = '10px';
-            stopBtn.onclick = (e) => {
-                e.preventDefault(); // Prevent accidental double clicks or form subs
-                if (this.activeTimer) {
-                    this.activeTimer.stop();
-                    this.activeTimer = null;
-                }
-
-                if (this.mode === 'test') {
-                    alert('試験中断...また挑戦してください！');
-                    this.navigation.navigate('home');
-                } else {
-                    // Treat as finished (or just cancel?)
-                    // User said "Stop/Complete".
-                    // Let's assume they want to finish the set even if early, OR just go back.
-                    // Previous logic: finishSingleSet.
-                    this.finishSingleSet();
-                }
-            };
-            container.appendChild(stopBtn);
-
         } else {
             // Count based (Reps)
             this.renderFinishButton(container);
@@ -200,7 +175,7 @@ export class WorkoutView {
     async finishSingleSet() {
         // Stop any active timer just in case
         if (this.activeTimer) {
-            this.activeTimer.stop();
+            this.activeTimer.pause();
             this.activeTimer = null;
         }
 
