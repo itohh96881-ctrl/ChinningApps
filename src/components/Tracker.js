@@ -49,28 +49,27 @@ export class Tracker {
         if (!this.userId) return 0;
         try {
             const history = await this.getHistory();
-            const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
-
             // Filter history for today
+            const now = new Date();
+            const todayStr = now.getFullYear() + '-' +
+                String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                String(now.getDate()).padStart(2, '0');
+
             const todayRecords = history.filter(record => {
-                const recordDate = new Date(record.createdAt || record.completedAt).toLocaleDateString('en-CA');
-                return recordDate === today;
+                const d = new Date(record.createdAt || record.completedAt);
+                const recordDateStr = d.getFullYear() + '-' +
+                    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(d.getDate()).padStart(2, '0');
+                return recordDateStr === todayStr;
             });
 
-            // Sum up sets (assuming 'sets' property in record is what implies a "session", but user said 3 sets per day.
-            // Actually, previous implementation saved records PER SESSION (which naturally had sets). 
-            // User now says "1 day 3 sets". 
-            // If a record represents "1 set" or "1 session of X sets"?
-            // Let's assume each Record stored is 1 Set for simplicity in this new flow, 
-            // OR we sum individual sets if multiple are stored.
-            // Looking at WorkoutView, finishWorkout saves { sets: this.currentStep.sets }.
-            // But with rest removal, maybe we save record PER SET?
-            // User: "Timer expiration increments Set completed count." -> implying granular tracking.
-            // Let's count TOTAL SETS recorded today.
-
+            // Sum up sets
             let totalSets = 0;
             todayRecords.forEach(r => {
-                totalSets += (r.sets || 0); // r.sets usually 1 or 3 depending on how we save
+                totalSets += (r.sets ? parseInt(r.sets) : 1); // Default to 1 if missing
+            });
+            todayRecords.forEach(r => {
+                totalSets += (r.sets || 0);
             });
 
             return totalSets;
