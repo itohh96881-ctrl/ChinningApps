@@ -185,6 +185,9 @@ export class WorkoutView {
 
     async finishSingleSet() {
         console.log("finishSingleSet called");
+        if (this.isProcessing) return;
+        this.isProcessing = true;
+
         try {
             // Stop any active timer just in case
             if (this.activeTimer) {
