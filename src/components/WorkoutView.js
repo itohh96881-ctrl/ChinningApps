@@ -37,12 +37,24 @@ export class WorkoutView {
 
         // Header
         const header = document.createElement('div');
-        header.className = 'view-header';
+        header.className = 'workout-header'; // Use new class
         header.innerHTML = `
-      <button class="back-btn">← 戻る</button>
-      <h2>${this.mode === 'test' ? '⭐️ PROMOTION EXAM' : `Level ${this.currentStep.level}`}</h2>
-    `;
-        header.querySelector('.back-btn').onclick = () => this.navigation.navigate('home');
+            <button class="back-btn-styled" id="backBtn">
+                <span>◀</span> HOME
+            </button>
+            <h2 class="step-title-large" style="margin:0; border:none; padding:0;">
+                ${this.mode === 'test' ? '⭐️ PROMOTION EXAM' : `Level ${this.currentStep.level}`}
+            </h2>
+        `;
+
+        // Use ID to find button
+        header.querySelector('#backBtn').onclick = () => {
+            if (this.activeTimer) {
+                this.activeTimer.pause(); // Cleanup timer if running
+            }
+            this.navigation.navigate('home');
+        };
+
         section.appendChild(header);
 
         // Content
@@ -62,7 +74,6 @@ export class WorkoutView {
         }
 
         content.innerHTML = `
-      <h3 class="step-title-large">${displayData.title}</h3>
       ${targetHtml}
       <p class="workout-instruction">${displayData.description}</p>
     `;
