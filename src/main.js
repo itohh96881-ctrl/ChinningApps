@@ -51,6 +51,23 @@ document.body.appendChild(versionDisplay);
 nav.register('timer', workoutView);
 
 // Start
-nav.navigate('home');
+// Auth Initialization & State Monitoring
+auth.init((user) => {
+  // Update Tracker with User ID
+  tracker.setUserId(user ? user.uid : null);
+
+  // Refresh current view if needed
+  // If we are on home view, reload it to show correct user data
+  // We can check nav.currentView if exposed, or just navigate 'home' if it's the startup phase.
+  // Since this callback fires on startup too, let's just validte if we need to refresh.
+  if (!nav.currentView || nav.currentView === 'home') {
+    nav.navigate('home');
+  }
+});
+
+// Initial View Render (Render as Guest initially, Auth will update it momentarily)
+if (!nav.currentView) {
+  nav.navigate('home');
+}
 
 console.log('App initialized');
