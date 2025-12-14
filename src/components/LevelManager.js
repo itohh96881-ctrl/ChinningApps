@@ -12,11 +12,11 @@ export class LevelManager {
 
   async render(container) {
     const section = document.createElement('section');
-    section.className = 'level-list fade-in';
+    section.className = 'level-list'; // Removed fade-in from here to avoid transform context
 
     // List
     const list = document.createElement('div');
-    list.className = 'step-list';
+    list.className = 'step-list fade-in'; // Added here
 
     // Get stats
     const userRank = await this.tracker.getUserRank();
@@ -26,7 +26,7 @@ export class LevelManager {
 
     // Header (Updated with Stats)
     const header = document.createElement('div');
-    header.className = 'view-header';
+    header.className = 'view-header fade-in'; // Added here
     header.innerHTML = `
       <h2>トレーニングメニュー</h2>
       
@@ -112,7 +112,7 @@ export class LevelManager {
 
     // History Section
     const historySection = document.createElement('div');
-    historySection.className = 'history-section';
+    historySection.className = 'history-section fade-in'; // Added here
     historySection.innerHTML = `<h3>トレーニング履歴</h3><div id="history-loading">読み込み中...</div>`;
     section.appendChild(historySection);
 
