@@ -6,7 +6,7 @@ export class Auth {
         this.tracker = tracker;
         this.navigation = navigation;
         this.user = null;
-        this.init();
+        // this.init(); // Moved to explicit call in main.js
     }
 
     init() {

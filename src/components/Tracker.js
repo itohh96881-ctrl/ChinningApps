@@ -60,8 +60,11 @@ export class Tracker {
                 const recordDateStr = d.getFullYear() + '-' +
                     String(d.getMonth() + 1).padStart(2, '0') + '-' +
                     String(d.getDate()).padStart(2, '0');
+
+                // console.log(`Checking record: ${recordDateStr} vs Today: ${todayStr}`, record);
                 return recordDateStr === todayStr;
             });
+            console.log(`[Tracker] Today's records found: ${todayRecords.length}`);
 
             // Sum up sets
             let totalSets = 0;
@@ -275,36 +278,45 @@ export class Tracker {
     }
 
     async getHistory() {
-        // Guest Mode (localStorage)
-        if (!this.userId) {
-            try {
-                const guestRecords = JSON.parse(localStorage.getItem('guest_records')) || [];
-                return guestRecords.reverse(); // Newest first
-            } catch (e) {
-                console.error("Error fetching guest history:", e);
-                return [];
-            }
-        }
-
-        const recordsRef = ref(db, `users/${this.userId}/records`);
-        // Note: Realtime DB sorting is limited compared to Firestore.
-        // For now, we just get all data and sort client-side if needed.
-
+        // 1. Fetch LocalStorage records (always)
+        let localRecords = [];
         try {
-            const snapshot = await get(recordsRef);
-            if (snapshot.exists()) {
-                const data = snapshot.val();
-                // Convert object of objects to array
-                return Object.keys(data).map(key => ({
-                    id: key,
-                    ...data[key]
-                })).reverse(); // Newest first
-            } else {
-                return [];
-            }
+            localRecords = JSON.parse(localStorage.getItem('guest_records')) || [];
         } catch (e) {
-            console.error("Error getting history:", e);
-            return [];
+            console.error("Error fetching guest history:", e);
         }
+
+        // 2. Fetch Firebase records (if logged in)
+        let fbRecords = [];
+        if (this.userId) {
+            const recordsRef = ref(db, `users/${this.userId}/records`);
+            try {
+                const snapshot = await get(recordsRef);
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    fbRecords = Object.keys(data).map(key => ({
+                        id: key,
+                        ...data[key]
+                    }));
+                }
+            } catch (e) {
+                console.error("Error getting fb history:", e);
+            }
+        }
+
+        // 3. Merge both sources
+        // Note: In a perfect world, we would deduplicate, but IDs should be distinct enough 
+        // (firebase push ID vs 'guest_timestamp').
+        const allRecords = [...fbRecords, ...localRecords];
+
+        // 4. Sort by createdAt descending (Newest first)
+        allRecords.sort((a, b) => {
+            const dateA = new Date(a.createdAt || a.completedAt);
+            const dateB = new Date(b.createdAt || b.completedAt);
+            return dateB - dateA;
+        });
+
+        console.log(`[Tracker] History loaded. Total: ${allRecords.length} (FB: ${fbRecords.length}, Local: ${localRecords.length})`);
+        return allRecords;
     }
 }
