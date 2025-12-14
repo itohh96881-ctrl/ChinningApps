@@ -37,7 +37,7 @@ export class LevelManager {
           <div class="daily-progress" style="font-size: 1rem; color: #aaa;">
             Today's Target: 
             <span style="color: ${dailyProgress >= dailyTarget ? '#00ff88' : '#e0e0e0'}; font-weight: bold;">
-                ${dailyProgress} / ${dailyTarget} Sets
+                ${Math.min(dailyProgress, dailyTarget)} / ${dailyTarget} Sets
             </span>
              ${dailyProgress >= dailyTarget ? '🎉' : ''}
           </div>

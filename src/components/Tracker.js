@@ -81,7 +81,38 @@ export class Tracker {
 
     // Get Streak Info
     async getStreak() {
-        if (!this.userId) return 0;
+        // Guest Mode
+        if (!this.userId) {
+            try {
+                const stats = JSON.parse(localStorage.getItem('guest_stats'));
+                if (!stats) return 0;
+
+                const lastDate = stats.lastAchievedDate;
+                const streak = stats.streak || 0;
+                if (!lastDate) return 0;
+
+                const now = new Date();
+                const todayStr = now.getFullYear() + '-' +
+                    String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(now.getDate()).padStart(2, '0');
+
+                // If last achieved is today, streak is valid
+                if (lastDate === todayStr) return streak;
+
+                // Check continuity (Yesterday)
+                const today = new Date(todayStr); // Local midnight approximation
+                const last = new Date(lastDate);
+                const diffTime = Math.abs(today - last);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffDays > 1) return 0; // Broken
+                return streak;
+            } catch (e) {
+                console.error("Error fetching guest streak:", e);
+                return 0;
+            }
+        }
+
         const statsRef = ref(db, `users/${this.userId}/stats`);
         try {
             const snapshot = await get(statsRef);
@@ -93,18 +124,27 @@ export class Tracker {
                 if (!lastDate) return 0;
 
                 // Check if streak is broken
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
+                // Use strict date string comparison to avoid UTC issues if possible, 
+                // but for continuity we need date math.
+                // Re-creating Date from YYYY-MM-DD strings works well for diffing days.
+
+                const now = new Date();
+                const todayStr = now.getFullYear() + '-' +
+                    String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(now.getDate()).padStart(2, '0');
+
+                if (lastDate === todayStr) return streak;
+
+                const today = new Date(todayStr);
                 const last = new Date(lastDate);
-                last.setHours(0, 0, 0, 0);
 
                 const diffTime = Math.abs(today - last);
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-                // If last achieved was yesterday (diff 1) or today (diff 0), streak is alive.
-                // If diff > 1, streak is broken.
                 if (diffDays > 1) {
-                    return 0;
+                    return 0; // Broken, but we return 0 only for display? 
+                    // Actually, if broken, current streak IS 0 until we re-establish?
+                    // Usually apps show "0 day streak" if you missed yesterday.
                 }
                 return streak;
             }
@@ -116,58 +156,81 @@ export class Tracker {
 
     // Check and update streak after a workout
     async checkDailyAchievement() {
-        if (!this.userId) return;
-
         const dailySets = await this.getDailyProgress();
         const targetSets = 3;
 
-        if (dailySets >= targetSets) {
-            const statsRef = ref(db, `users/${this.userId}/stats`);
-            const todayStr = new Date().toLocaleDateString('en-CA');
+        // Logic for continuity check
+        const checkAndCalcStreak = (lastDate, currentStreak) => {
+            const now = new Date();
+            const todayStr = now.getFullYear() + '-' +
+                String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                String(now.getDate()).padStart(2, '0');
 
+            if (lastDate === todayStr) return { streak: currentStreak, isNew: false }; // Already done today
+
+            // Check if yesterday
+            if (lastDate) {
+                const today = new Date(todayStr);
+                const last = new Date(lastDate);
+                const diffTime = Math.abs(today - last);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffDays === 1) {
+                    return { streak: currentStreak + 1, isNew: true };
+                }
+            }
+            return { streak: 1, isNew: true }; // Start over
+        };
+
+        if (dailySets >= targetSets) {
+            const now = new Date();
+            const todayStr = now.getFullYear() + '-' +
+                String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                String(now.getDate()).padStart(2, '0');
+
+            // Guest Mode
+            if (!this.userId) {
+                try {
+                    const stats = JSON.parse(localStorage.getItem('guest_stats')) || {};
+                    const result = checkAndCalcStreak(stats.lastAchievedDate, stats.streak || 0);
+
+                    if (result.isNew) {
+                        localStorage.setItem('guest_stats', JSON.stringify({
+                            streak: result.streak,
+                            lastAchievedDate: todayStr
+                        }));
+                        return { achieved: true, streak: result.streak, dailySets };
+                    }
+                    // Already achieved today return current info
+                    return { achieved: true, streak: result.streak, dailySets };
+
+                } catch (e) { console.error(e); }
+                return { achieved: false, dailySets };
+            }
+
+            // Logged-in Mode
+            const statsRef = ref(db, `users/${this.userId}/stats`);
             try {
                 const snapshot = await get(statsRef);
-                let streak = 0;
+                let currentStreak = 0;
                 let lastDate = "";
 
                 if (snapshot.exists()) {
                     const val = snapshot.val();
-                    streak = val.streak || 0;
+                    currentStreak = val.streak || 0;
                     lastDate = val.lastAchievedDate || "";
                 }
 
-                // If already achieved today, do nothing
-                if (lastDate === todayStr) {
-                    return;
+                const result = checkAndCalcStreak(lastDate, currentStreak);
+
+                if (result.isNew) {
+                    await set(statsRef, {
+                        streak: result.streak,
+                        lastAchievedDate: todayStr
+                    });
+                    return { achieved: true, streak: result.streak, dailySets };
                 }
-
-                // Check continuity
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-
-                // If lastDate exists
-                if (lastDate) {
-                    const last = new Date(lastDate);
-                    last.setHours(0, 0, 0, 0);
-                    const diffTime = Math.abs(today - last);
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                    if (diffDays === 1) {
-                        streak++; // Continuous
-                    } else {
-                        streak = 1; // Reset or Start new (if diff > 1)
-                    }
-                } else {
-                    streak = 1; // First time
-                }
-
-                // Update DB
-                await set(statsRef, {
-                    streak: streak,
-                    lastAchievedDate: todayStr
-                });
-
-                return { achieved: true, streak: streak, dailySets: dailySets };
+                return { achieved: true, streak: result.streak, dailySets };
 
             } catch (e) {
                 console.error("Error updating streak:", e);
