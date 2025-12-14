@@ -30,15 +30,16 @@
 }
 
 body {
+  font-family: var(--font-main);
+  background-color: var(--bg-dark);
+  /* Deep Indigo/Blue background (Complementary to Gold/Orange text) */
   background-image:
-    linear-gradient(335deg, rgba(0, 0, 0, 0.2) 23px, transparent 23px),
-    linear-gradient(155deg, rgba(0, 0, 0, 0.2) 23px, transparent 23px),
-    linear-gradient(335deg, rgba(0, 0, 0, 0.2) 23px, transparent 23px),
-    linear-gradient(155deg, rgba(0, 0, 0, 0.2) 23px, transparent 23px);
-  background-size: 58px 58px;
-  background-position: 0px 2px, 4px 35px, 29px 31px, 34px 6px;
+    radial-gradient(circle at 50% 100%, #1a1a2e, #16213e),
+    radial-gradient(circle at 0% 0%, rgba(20, 30, 60, 0.8), transparent 50%);
+  background-attachment: fixed;
+  background-size: cover;
 
-  color: var(--color-text);
+  color: var(--text-main);
   line-height: 1.5;
   font-size: var(--font-size-base);
   overflow-x: hidden;
