@@ -184,34 +184,50 @@ export class WorkoutView {
     }
 
     async finishSingleSet() {
-        // Stop any active timer just in case
-        if (this.activeTimer) {
-            this.activeTimer.pause();
-            this.activeTimer = null;
-        }
-
-        // Save 1 Set
-        if (this.tracker) {
-            await this.tracker.saveRecord({
-                level: this.currentStep.level,
-                title: this.currentStep.title,
-                completedAt: new Date(),
-                sets: 1 // Always 1 set per action
-            });
-
-            // Check Daily Goal
-            const result = await this.tracker.checkDailyAchievement();
-
-            if (result && result.achieved) {
-                // Fanfare / Alert for Daily Goal
-                soundManager.playDing();
-                this.showCelebration('🎉 今日のノルマ達成！', `継続日数: ${result.streak}日目\n素晴らしい継続力です！`);
-            } else {
-                // Just finished a set
-                soundManager.playDing();
-                this.showSetComplete(result.dailySets || 1);
+        console.log("finishSingleSet called");
+        try {
+            // Stop any active timer just in case
+            if (this.activeTimer) {
+                console.log("Pausing active timer");
+                this.activeTimer.pause();
+                this.activeTimer = null;
             }
-        } else {
+
+            // Save 1 Set
+            if (this.tracker) {
+                console.log("Tracker exists, saving record...");
+                await this.tracker.saveRecord({
+                    level: this.currentStep.level,
+                    title: this.currentStep.title,
+                    completedAt: new Date(),
+                    sets: 1 // Always 1 set per action
+                });
+                console.log("Record saved.");
+
+                // Check Daily Goal
+                console.log("Checking daily achievement...");
+                const result = await this.tracker.checkDailyAchievement();
+                console.log("Achievement result:", result);
+
+                if (result && result.achieved) {
+                    // Fanfare / Alert for Daily Goal
+                    console.log("Daily goal achieved!");
+                    soundManager.playDing();
+                    this.showCelebration('🎉 今日のノルマ達成！', `継続日数: ${result.streak}日目\n素晴らしい継続力です！`);
+                } else {
+                    // Just finished a set
+                    console.log("Set complete, showing set overlay...");
+                    soundManager.playDing();
+                    const dailySets = result ? result.dailySets : 1;
+                    this.showSetComplete(dailySets || 1);
+                }
+            } else {
+                console.warn("No tracker found, navigating home.");
+                this.navigation.navigate('home');
+            }
+        } catch (e) {
+            console.error("Error in finishSingleSet:", e);
+            alert("エラーが発生しました: " + e.message);
             this.navigation.navigate('home');
         }
     }
@@ -232,12 +248,16 @@ export class WorkoutView {
         document.body.appendChild(overlay);
 
         // Mini Confetti
-        confetti({
-            particleCount: 50,
-            spread: 70,
-            origin: { y: 0.8 },
-            colors: ['#00bcd4', '#ffffff']
-        });
+        try {
+            confetti({
+                particleCount: 50,
+                spread: 70,
+                origin: { y: 0.8 },
+                colors: ['#00bcd4', '#ffffff']
+            });
+        } catch (e) {
+            console.error("Confetti error:", e);
+        }
 
         // Auto Dismiss
         setTimeout(() => {
@@ -273,26 +293,30 @@ export class WorkoutView {
         const duration = 3000;
         const end = Date.now() + duration;
 
-        (function frame() {
-            confetti({
-                particleCount: 7,
-                angle: 60,
-                spread: 55,
-                origin: { x: 0 },
-                colors: ['#ff0', '#f0f', '#0ff']
-            });
-            confetti({
-                particleCount: 7,
-                angle: 120,
-                spread: 55,
-                origin: { x: 1 },
-                colors: ['#ff0', '#f0f', '#0ff']
-            });
+        try {
+            (function frame() {
+                confetti({
+                    particleCount: 7,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: ['#ff0', '#f0f', '#0ff']
+                });
+                confetti({
+                    particleCount: 7,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: ['#ff0', '#f0f', '#0ff']
+                });
 
-            if (Date.now() < end) {
-                requestAnimationFrame(frame);
-            }
-        }());
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
+        } catch (e) {
+            console.error("Celebration confetti error:", e);
+        }
 
         // Handle Close
         document.getElementById('celebration-ok').onclick = () => {
