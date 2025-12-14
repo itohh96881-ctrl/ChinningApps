@@ -177,12 +177,27 @@ export class Tracker {
     }
 
     async saveRecord(recordData) {
+        // Guest Mode (localStorage)
         if (!this.userId) {
-            console.warn("User not logged in, cannot save record to DB.");
-            alert("記録を保存するにはログインが必要です。");
-            return;
+            console.log("Guest mode: Saving to localStorage");
+            try {
+                const guestRecords = JSON.parse(localStorage.getItem('guest_records')) || [];
+                const newRecord = {
+                    id: 'guest_' + Date.now(),
+                    ...recordData,
+                    createdAt: new Date().toISOString()
+                };
+                guestRecords.push(newRecord);
+                localStorage.setItem('guest_records', JSON.stringify(guestRecords));
+                console.log("Guest record saved:", newRecord);
+                return newRecord.id;
+            } catch (e) {
+                console.error("Error saving guest record:", e);
+                return null;
+            }
         }
 
+        // Logged-in Mode (Firebase)
         try {
             // Create a reference to the user's records
             const recordsRef = ref(db, `users/${this.userId}/records`);
@@ -200,7 +215,16 @@ export class Tracker {
     }
 
     async getHistory() {
-        if (!this.userId) return [];
+        // Guest Mode (localStorage)
+        if (!this.userId) {
+            try {
+                const guestRecords = JSON.parse(localStorage.getItem('guest_records')) || [];
+                return guestRecords.reverse(); // Newest first
+            } catch (e) {
+                console.error("Error fetching guest history:", e);
+                return [];
+            }
+        }
 
         const recordsRef = ref(db, `users/${this.userId}/records`);
         // Note: Realtime DB sorting is limited compared to Firestore.

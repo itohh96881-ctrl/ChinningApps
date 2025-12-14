@@ -154,13 +154,8 @@ export class LevelManager {
   }
 
   async loadHistory(container) {
-    if (!this.tracker.userId) {
-      container.innerHTML = `
-                <h3>トレーニング履歴</h3>
-                <p class="history-empty">ログインするとここに履歴が表示されます。</p>
-            `;
-      return;
-    }
+    // Always try to load history (Guest or User)
+    // if (!this.tracker.userId) { ... } // Removed early return
 
     const history = await this.tracker.getHistory();
     container.innerHTML = '<h3>トレーニング履歴</h3>';
