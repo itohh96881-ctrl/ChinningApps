@@ -10,213 +10,202 @@ export class LevelManager {
     this.tracker = tracker;
   }
 
-  async render(container) {
+  render(container) {
+    this.container = container;
+
+    // Sync Render (Skeleton)
     const section = document.createElement('section');
-    section.className = 'level-list'; // Removed fade-in from here to avoid transform context
+    section.className = 'level-view';
 
-    // List
-    const list = document.createElement('div');
-    list.className = 'step-list fade-in'; // Added here
-
-    // Get stats
-    const userRank = await this.tracker.getUserRank();
-    const streak = await this.tracker.getStreak();
-    const dailyProgress = await this.tracker.getDailyProgress();
-    const dailyTarget = 3;
-
-    // Header (Updated with Stats)
+    // 1. Header (Placeholder)
     const header = document.createElement('div');
-    header.className = 'view-header fade-in'; // Added here
+    header.className = 'view-header fade-in';
     header.innerHTML = `
-      <h2>トレーニングメニュー</h2>
-      
-      <div class="stats-container" style="margin-bottom: 20px; text-align: center;">
-          <div class="streak-display" style="font-size: 1.5rem; font-weight: bold; color: #ff8800; text-shadow: 0 0 10px rgba(255, 136, 0, 0.5); margin-bottom: 8px;">
-            🔥 ${streak} Days Streak
-          </div>
-          <div class="daily-progress" style="font-size: 1rem; color: #aaa;">
-            Today's Target: 
-            <span style="color: ${dailyProgress >= dailyTarget ? '#00ff88' : '#e0e0e0'}; font-weight: bold;">
-                ${Math.min(dailyProgress, dailyTarget)} / ${dailyTarget} Sets
-            </span>
-             ${dailyProgress >= dailyTarget ? '🎉' : ''}
-          </div>
-      </div>
-
-      <p class="subtitle">レベルに合わせてトレーニングを選んでください</p>
+        <div class="header-content">
+             <div class="header-info-container">
+                <div class="status-badge" id="streak-badge">🔥 Checking...</div>
+                <div class="daily-target" id="daily-target">Daily: ...</div>
+             </div>
+             <h2 class="title-large">TRAINING MENU</h2>
+        </div>
     `;
     section.appendChild(header);
 
-    trainingSteps.forEach(step => {
-      const isLocked = step.rankId > userRank;
-      const isCleared = step.rankId < userRank;
-      const isCurrent = step.rankId === userRank;
-
-      const card = document.createElement('div'); // Changed to div to contain buttons
-      card.className = `step-card ${isLocked ? 'locked' : ''} ${isCleared ? 'cleared' : ''} ${isCurrent ? 'current' : ''}`;
-
-      let actionButtons = '';
-
-      if (isLocked) {
-        actionButtons = `<div class="lock-overlay"><span class="lock-icon">🔒</span><span class="lock-text">LOCKED</span></div>`;
-      } else {
-        // Training Button
-        actionButtons = `
-            <button class="btn btn-secondary btn-sm" onclick="app.navigation.navigate('timer', { step })">
-               ⚔️ トレーニング (Streak: ${streak})
-            </button>
-          `;
-
-        // Test Button (Only for current level)
-        if (isCurrent) {
-          actionButtons += `
-                <button class="btn btn-primary btn-sm btn-test" onclick="app.navigation.navigate('timer', { step, mode: 'test' })">
-                   🔥 昇格試験を受ける (Promotion Test)
-                </button>
-              `;
-        }
-      }
-
-      card.innerHTML = `
-        <div class="step-header-row">
-            <span class="step-badge">Level ${step.level}</span>
-            ${isCleared ? '<span class="status-badge cleared">👑 CLEARED</span>' : ''}
-            ${isCurrent ? '<span class="status-badge current">📍 YOU ARE HERE</span>' : ''}
-        </div>
-        <div class="step-info">
-          <h3 class="step-title">${step.title}</h3>
-          <p class="step-desc">${step.description}</p>
-        </div>
-        <div class="step-targets">
-          <div class="target-item">
-            <span class="target-label">目標</span>
-            <span class="target-value">${step.target.value}<small>${step.target.unit}</small></span>
-          </div>
-          <div class="target-item">
-            <span class="target-label">セット</span>
-            <span class="target-value">${step.sets}<small>set</small></span>
-          </div>
-        </div>
-        <div class="step-actions">
-            ${actionButtons}
-        </div>
-      `;
-
-      // Make the whole card clickable for training if not locked, but avoid conflict with buttons
-      // Actually, let's rely on the buttons for clarity in this new UI
-
-      list.appendChild(card);
-    });
-
+    // 2. Component List Container
+    const list = document.createElement('div');
+    list.className = 'level-list fade-in';
+    this.listContainer = list;
     section.appendChild(list);
 
-    // History Section
+    // 3. History Container
     const historySection = document.createElement('div');
-    historySection.className = 'history-section fade-in'; // Added here
-    historySection.innerHTML = `<h3>トレーニング履歴</h3><div id="history-loading">読み込み中...</div>`;
+    historySection.className = 'history-section fade-in';
+    historySection.innerHTML = `<h3>Activity History</h3><div id="history-list" class="history-list">Loading...</div>`;
+    this.historyListContainer = historySection.querySelector('#history-list');
     section.appendChild(historySection);
 
-    this.loadHistory(historySection);
-
-    this.renderTeam(section); // Add Team Section
+    // 4. Team (Cheering Squad)
+    this.renderTeam(section);
 
     container.appendChild(section);
 
-    // Quick hack to make onclick work with 'app.navigation' global access or bind properly
-    // Since we don't have global 'app', we need to attach event listeners manually after appending
-    const buttons = list.querySelectorAll('button');
-    buttons.forEach(btn => {
-      const onclickAttr = btn.getAttribute('onclick');
-      if (onclickAttr) {
-        btn.onclick = null; // Clear string attribute
-        // Re-implement logic safely
-        if (onclickAttr.includes("'test'")) {
-          // Extract step index or data. For now, let's use a simpler closure approach in the loop above?
-          // No, string injection is messy. Let's fix this in the loop.
-        }
-      }
-    });
-
-    // Re-assign click handlers properly using closures (cleaner than string injection)
-    Array.from(list.children).forEach((card, index) => {
-      const step = trainingSteps[index];
-      const trainBtn = card.querySelector('.btn-secondary');
-      const testBtn = card.querySelector('.btn-test');
-
-      if (trainBtn) {
-        trainBtn.onclick = () => this.navigation.navigate('timer', { step, mode: 'training' });
-      }
-      if (testBtn) {
-        testBtn.onclick = () => this.navigation.navigate('timer', { step, mode: 'test' });
-      }
-    });
-
+    // Start Data Fetch
+    this.updateDashboard();
   }
 
-  async loadHistory(container) {
-    // Always try to load history (Guest or User)
-    // if (!this.tracker.userId) { ... } // Removed early return
+  async updateDashboard() {
+    try {
+      const userRank = await this.tracker.getUserRank();
+      const streak = await this.tracker.getStreak();
+      const dailyProgress = await this.tracker.getDailyProgress();
 
-    const history = await this.tracker.getHistory();
-    container.innerHTML = '<h3>トレーニング履歴</h3>';
+      // Safety Check: If user navigated away, container is gone from DOM
+      if (!document.body.contains(this.container)) return;
+
+      // Update Header
+      const streakBadge = this.container.querySelector('#streak-badge');
+      const dailyTarget = this.container.querySelector('#daily-target');
+
+      if (streakBadge) streakBadge.textContent = `🔥 ${streak} Days Streak`;
+      if (dailyTarget) dailyTarget.innerHTML = `Today's Target: <span class="accent">${Math.min(dailyProgress, 3)}</span> / 3 Sets 🏁`;
+
+      // Render Lists
+      this.renderLevelList(userRank, streak);
+
+      const history = await this.tracker.getHistory();
+      if (document.body.contains(this.container)) {
+        this.renderHistoryList(history);
+      }
+
+    } catch (e) {
+      console.error("Dashboard update failed", e);
+    }
+  }
+
+  renderLevelList(userRank, streak) {
+    this.listContainer.innerHTML = '';
+    trainingSteps.forEach(step => {
+      const isLocked = step.rankId > userRank;
+
+      const card = document.createElement('div');
+      card.className = `step-card ${isLocked ? 'locked' : ''}`;
+
+      // Status Badges
+      let badgeHtml = '';
+      if (step.rankId < userRank) {
+        badgeHtml = `<div class="status-badge cleared">CLEARED</div>`;
+      } else if (step.rankId === userRank) {
+        badgeHtml = `<div class="status-badge current">CURRENT LEVEL</div>`;
+      }
+
+      // Lock Overlay or Content
+      let contentHtml = '';
+      let actionBtnHtml = '';
+
+      if (isLocked) {
+        contentHtml = `
+                <div class="lock-overlay">
+                    <span class="lock-icon">🔒</span>
+                    <p>Unlock by clearing Level ${step.level - 1}</p>
+                </div>
+            `;
+      } else {
+        // Determine Button Text (Training vs Test)
+        let btnText = "トレーニング";
+        let btnClass = "btn-primary";
+        let mode = "training";
+
+        if (step.testCriteria) {
+          btnText = "昇格試験に挑戦";
+          btnClass = "btn-accent";
+          mode = "test";
+        }
+
+        if (mode === 'training') {
+          btnText += ` (Streak: ${streak})`;
+        }
+
+        actionBtnHtml = `
+                <button class="btn ${btnClass} start-btn">
+                    ⚔️ ${btnText}
+                </button>
+            `;
+      }
+
+      card.innerHTML = `
+            ${badgeHtml}
+            <div class="step-header">
+                <span class="step-level">Level ${step.level}</span>
+                ${step.rankId === userRank ? '<span class="you-are-here">📍 YOU ARE HERE</span>' : ''}
+            </div>
+            <h3 class="step-title">${step.title}</h3>
+            <p class="step-desc">${step.description}</p>
+            <div class="step-meta">
+                <div class="meta-item">目標 <strong>${step.target.value}${step.target.unit}</strong></div>
+                <div class="meta-item">セット <strong>${step.sets}set</strong></div>
+            </div>
+            ${contentHtml}
+            ${actionBtnHtml}
+        `;
+
+      // Click Handler
+      if (!isLocked) {
+        const btn = card.querySelector('.start-btn');
+        if (btn) {
+          btn.onclick = () => {
+            const mode = step.testCriteria ? 'test' : 'training';
+            this.navigation.navigate('timer', { step: step, mode: mode });
+          };
+        }
+      }
+
+      this.listContainer.appendChild(card);
+    });
+  }
+
+  renderHistoryList(history) {
+    if (!this.historyListContainer) return;
 
     if (history.length === 0) {
-      const emptyMsg = document.createElement('p');
-      emptyMsg.className = 'history-empty';
-      emptyMsg.textContent = 'まだ履歴がありません。トレーニングを開始しましょう！';
-      container.appendChild(emptyMsg);
+      this.historyListContainer.innerHTML = '<p class="empty-msg">No history yet. Start training!</p>';
       return;
     }
 
-    const historyList = document.createElement('div');
-    historyList.className = 'history-list';
-
-    history.forEach(record => {
-      const date = new Date(record.createdAt || record.completedAt).toLocaleDateString();
-      const time = new Date(record.createdAt || record.completedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-      const item = document.createElement('div');
-      item.className = 'history-item';
-      item.innerHTML = `
-                <div class="history-date">
-                    <span class="date">${date}</span>
-                    <span class="time">${time}</span>
-                </div>
-                <div class="history-info">
-                    <span class="history-level">Level ${record.level}</span>
-                    <span class="history-title">${record.title}</span>
-                </div>
-                <div class="history-status">
-                    <span class="done-badge">COMPLETED</span>
-                </div>
-            `;
-      historyList.appendChild(item);
+    this.historyListContainer.innerHTML = '';
+    history.slice(0, 5).forEach(record => {
+      const div = document.createElement('div');
+      div.className = 'history-item fade-in';
+      const dateStr = new Date(record.createdAt || record.completedAt).toLocaleDateString();
+      div.innerHTML = `
+            <span class="h-date">${dateStr}</span>
+            <span class="h-title">${record.title}</span>
+            <span class="h-sets">${record.sets} sets</span>
+         `;
+      this.historyListContainer.appendChild(div);
     });
-
-    container.appendChild(historyList);
   }
 
   renderTeam(container) {
     const section = document.createElement('div');
     section.className = 'team-section fade-in-up';
     section.innerHTML = `
-            <h3>Team Chinning</h3>
-            <div class="team-grid">
-                <div class="team-wrapper float-1">
-                    <img src="${charMaleYoung}" alt="Young Male" class="team-member">
-                </div>
-                <div class="team-wrapper float-2">
-                    <img src="${charFemaleYoung}" alt="Young Female" class="team-member">
-                </div>
-                <div class="team-wrapper float-3">
-                    <img src="${charMaleOld}" alt="Old Male" class="team-member">
-                </div>
-                <div class="team-wrapper float-4">
-                    <img src="${charFemaleOld}" alt="Old Female" class="team-member">
-                </div>
+        <h3>Team Chinning</h3>
+        <div class="team-grid">
+            <div class="team-wrapper float-1">
+                <img src="${charMaleYoung}" alt="Young Male" class="team-member">
             </div>
-            <p class="team-message">今日も一緒に頑張ろう！</p>
-        `;
+            <div class="team-wrapper float-2">
+                <img src="${charFemaleYoung}" alt="Young Female" class="team-member">
+            </div>
+            <div class="team-wrapper float-3">
+                <img src="${charMaleOld}" alt="Old Male" class="team-member">
+            </div>
+            <div class="team-wrapper float-4">
+                <img src="${charFemaleOld}" alt="Old Female" class="team-member">
+            </div>
+        </div>
+        <p class="team-message">今日も一緒に頑張ろう！</p>
+    `;
     container.appendChild(section);
   }
 }
