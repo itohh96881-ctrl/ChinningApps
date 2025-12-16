@@ -14,7 +14,7 @@ export class Auth {
             this.user = user;
             this.updateUI();
             if (user) {
-                console.log('User signed in:', user.displayName);
+                console.log('[Auth] User signed in:', user.displayName);
                 this.tracker.setUserId(user.uid);
             } else {
                 console.log('User signed out');

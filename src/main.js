@@ -61,8 +61,17 @@ auth.init((user) => {
   // FORCE Refresh current view to update data
   // We reload 'home' to ensure the dashboard reflects the logged-in user's data (Rank/Streak/Logs)
   // Even if we are already on 'home', calling this forces LevelManager.render() to run again.
+  // FORCE Refresh current view to update data
   nav.navigate('home');
 });
+
+// Force Reload Mechanism for v1.11.6 fix
+// This ensures clients stuck with old JS main chunks get refreshed
+if (!sessionStorage.getItem('v1.11.6_fixed')) {
+  console.log('Force reloading for update v1.11.6...');
+  sessionStorage.setItem('v1.11.6_fixed', 'true');
+  window.location.reload();
+}
 
 // Initial View Render (Render as Guest initially, Auth will update it momentarily)
 if (!nav.currentView) {
