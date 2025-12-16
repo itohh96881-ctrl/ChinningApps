@@ -59,8 +59,13 @@ export class LevelManager {
       const streak = await this.tracker.getStreak();
       const dailyProgress = await this.tracker.getDailyProgress();
 
-      // Safety Check: If user navigated away, container is gone from DOM
-      if (!document.body.contains(this.container)) return;
+      console.log(`[LevelManager] Dashboard Updated. Rank:${userRank}, Streak:${streak}, Daily:${dailyProgress}`);
+
+      // Safety Check
+      if (!document.body.contains(this.container)) {
+        console.log('[LevelManager] Container removed, skipping update');
+        return;
+      }
 
       // Update Header
       const streakBadge = this.container.querySelector('#streak-badge');
@@ -86,6 +91,7 @@ export class LevelManager {
     this.listContainer.innerHTML = '';
     trainingSteps.forEach(step => {
       const isLocked = step.rankId > userRank;
+      const isCurrent = step.rankId === userRank;
 
       const card = document.createElement('div');
       card.className = `step-card ${isLocked ? 'locked' : ''}`;
@@ -98,7 +104,7 @@ export class LevelManager {
         badgeHtml = `<div class="status-badge current">CURRENT LEVEL</div>`;
       }
 
-      // Lock Overlay or Content
+      // Content
       let contentHtml = '';
       let actionBtnHtml = '';
 
@@ -110,26 +116,21 @@ export class LevelManager {
                 </div>
             `;
       } else {
-        // Determine Button Text (Training vs Test)
-        let btnText = "トレーニング";
-        let btnClass = "btn-primary";
-        let mode = "training";
-
-        if (step.testCriteria) {
-          btnText = "昇格試験に挑戦";
-          btnClass = "btn-accent";
-          mode = "test";
-        }
-
-        if (mode === 'training') {
-          btnText += ` (Streak: ${streak})`;
-        }
-
-        actionBtnHtml = `
-                <button class="btn ${btnClass} start-btn">
-                    ⚔️ ${btnText}
+        // Training Button (Always Visible)
+        actionBtnHtml += `
+                <button class="btn btn-secondary start-modal-btn training-btn">
+                    ⚔️ トレーニング (Streak: ${streak})
                 </button>
             `;
+
+        // Test Button (Only if Current Rank and has criteria)
+        if (isCurrent && step.testCriteria) {
+          actionBtnHtml += `
+                    <button class="btn btn-primary start-modal-btn test-btn" style="margin-top: 8px;">
+                        🔥 昇格試験に挑戦
+                    </button>
+                 `;
+        }
       }
 
       card.innerHTML = `
@@ -145,16 +146,25 @@ export class LevelManager {
                 <div class="meta-item">セット <strong>${step.sets}set</strong></div>
             </div>
             ${contentHtml}
-            ${actionBtnHtml}
+            <div class="step-actions">
+                ${actionBtnHtml}
+            </div>
         `;
 
-      // Click Handler
+      // Click Handlers
       if (!isLocked) {
-        const btn = card.querySelector('.start-btn');
-        if (btn) {
-          btn.onclick = () => {
-            const mode = step.testCriteria ? 'test' : 'training';
-            this.navigation.navigate('timer', { step: step, mode: mode });
+        const trainingBtn = card.querySelector('.training-btn');
+        const testBtn = card.querySelector('.test-btn');
+
+        if (trainingBtn) {
+          trainingBtn.onclick = () => {
+            this.navigation.navigate('timer', { step: step, mode: 'training' });
+          };
+        }
+
+        if (testBtn) {
+          testBtn.onclick = () => {
+            this.navigation.navigate('timer', { step: step, mode: 'test' });
           };
         }
       }
