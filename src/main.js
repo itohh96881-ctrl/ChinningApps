@@ -54,15 +54,14 @@ nav.register('timer', workoutView);
 // Auth Initialization & State Monitoring
 auth.init((user) => {
   // Update Tracker with User ID
-  tracker.setUserId(user ? user.uid : null);
+  const userId = user ? user.uid : null;
+  tracker.setUserId(userId);
+  console.log(`[Main] User signed in: ${user ? user.displayName : 'Guest'} (${userId}). Refreshing view...`);
 
-  // Refresh current view if needed
-  // If we are on home view, reload it to show correct user data
-  // We can check nav.currentView if exposed, or just navigate 'home' if it's the startup phase.
-  // Since this callback fires on startup too, let's just validte if we need to refresh.
-  if (!nav.currentView || nav.currentView === 'home') {
-    nav.navigate('home');
-  }
+  // FORCE Refresh current view to update data
+  // We reload 'home' to ensure the dashboard reflects the logged-in user's data (Rank/Streak/Logs)
+  // Even if we are already on 'home', calling this forces LevelManager.render() to run again.
+  nav.navigate('home');
 });
 
 // Initial View Render (Render as Guest initially, Auth will update it momentarily)
