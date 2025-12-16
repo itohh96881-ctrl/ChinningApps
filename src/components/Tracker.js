@@ -46,14 +46,19 @@ export class Tracker {
 
     // Get today's progress (number of sets completed)
     async getDailyProgress() {
-        if (!this.userId) return 0;
+        // v1.11.7: Removed userId check to allow Guest calc during auth initialization
+        // if (!this.userId) return 0; 
+
         try {
-            const history = await this.getHistory();
+            const history = await this.getHistory(); // This now returns merged attributes
+
             // Filter history for today
             const now = new Date();
             const todayStr = now.getFullYear() + '-' +
                 String(now.getMonth() + 1).padStart(2, '0') + '-' +
                 String(now.getDate()).padStart(2, '0');
+
+            console.log(`[Tracker] Checking Progress for User:${this.userId || 'Guest'}, Today:${todayStr}`);
 
             const todayRecords = history.filter(record => {
                 const d = new Date(record.createdAt || record.completedAt);
@@ -61,17 +66,21 @@ export class Tracker {
                     String(d.getMonth() + 1).padStart(2, '0') + '-' +
                     String(d.getDate()).padStart(2, '0');
 
-                // console.log(`Checking record: ${recordDateStr} vs Today: ${todayStr}`, record);
+                // Detailed Debug Log
+                // console.log(`[Tracker] Compare: Rec:${recordDateStr} vs Today:${todayStr} => ${recordDateStr === todayStr}`);
+
                 return recordDateStr === todayStr;
             });
+
             console.log(`[Tracker] Today's records found: ${todayRecords.length}`);
 
             // Sum up sets
             let totalSets = 0;
             todayRecords.forEach(r => {
-                totalSets += (r.sets ? parseInt(r.sets) : 1); // Default to 1 if missing
+                totalSets += (r.sets ? parseInt(r.sets) : 1);
             });
 
+            console.log(`[Tracker] Total Sets Calculated: ${totalSets}`);
             return totalSets;
         } catch (e) {
             console.error("Error getting daily progress:", e);
