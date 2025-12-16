@@ -6,19 +6,29 @@ export class Auth {
         this.tracker = tracker;
         this.navigation = navigation;
         this.user = null;
-        // this.init(); // Moved to explicit call in main.js
+        this.onAuthStateChangedCallback = null;
     }
 
-    init() {
+    init(callback) {
+        this.onAuthStateChangedCallback = callback;
+
+        // Start listening ONLY after callback is ready
         onAuthStateChanged(auth, (user) => {
             this.user = user;
             this.updateUI();
+
             if (user) {
                 console.log('[Auth] User signed in:', user.displayName);
+                // Also update local tracker ref immediately just in case
                 this.tracker.setUserId(user.uid);
             } else {
-                console.log('User signed out');
+                console.log('[Auth] User signed out');
                 this.tracker.setUserId(null);
+            }
+
+            // Notify Main
+            if (this.onAuthStateChangedCallback) {
+                this.onAuthStateChangedCallback(user);
             }
         });
     }
