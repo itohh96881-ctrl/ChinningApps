@@ -116,12 +116,35 @@ export class LevelManager {
                 </div>
             `;
       } else {
-        // Training Button (Always Visible)
-        actionBtnHtml += `
-                <button class="btn btn-secondary start-modal-btn training-btn">
-                    ⚔️ トレーニング (Streak: ${streak})
-                </button>
+        const forceExamMode = isCurrent && step.testCriteria && streak >= 5;
+
+        // Training Button (Hidden if forced)
+        if (!forceExamMode) {
+          actionBtnHtml += `
+                    <button class="btn btn-secondary start-modal-btn training-btn">
+                        ⚔️ トレーニング (Streak: ${streak})
+                    </button>
+                `;
+        } else {
+          // Message for forced mode
+          contentHtml += `
+                <div class="force-exam-message" style="
+                    color: #ffaa00; 
+                    font-weight: bold; 
+                    margin-bottom: 12px; 
+                    text-align: center;
+                    border: 1px solid #ffaa00;
+                    padding: 8px;
+                    border-radius: 8px;
+                    background: rgba(255, 170, 0, 0.1);
+                    animation: pulse 2s infinite;
+                ">
+                    🔥 5日連続達成！<br>
+                    現在のレベルは卒業です。<br>
+                    昇格試験を受けてください！
+                </div>
             `;
+        }
 
         // Test Button (Only if Current Rank and has criteria)
         if (isCurrent && step.testCriteria) {
