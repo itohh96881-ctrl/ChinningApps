@@ -16,6 +16,13 @@ export class WorkoutView {
         this.currentSet = 1;
         this.mode = params.mode || 'training'; // 'training' or 'test'
 
+        // Reset state for new session
+        this.isProcessing = false;
+        if (this.activeTimer) {
+            this.activeTimer.pause();
+        }
+        this.activeTimer = null;
+
         let displayData = {
             title: this.currentStep.title,
             description: this.currentStep.description,
